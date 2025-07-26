@@ -1,0 +1,86 @@
+{
+	"metadata": {
+		"version": 0.1,
+		"title": "Untitled",
+		"description": "No description",
+		"author": "Unknown"
+	},
+	"nodes": [
+		{
+			"id": "const1",
+			"name": "Constant Node 1",
+			"parameters": {
+				"value": 50.0
+			},
+			"properties": {
+				"position": {
+					"x": 0.0,
+					"y": 0.0,
+					"z": 0.0
+				}
+			},
+			"type": "ConstantNumberNode"
+		},
+		{
+			"id": "const2",
+			"name": "Constant Node 2",
+			"parameters": {
+				"value": 10.0
+			},
+			"properties": {
+				"position": {
+					"x": 0.0,
+					"y": 300.0,
+					"z": 0.0
+				}
+			},
+			"type": "ConstantNumberNode"
+		},
+		{
+			"id": "add1",
+			"name": "Add Node",
+			"parameters": {},
+			"properties": {
+				"position": {
+					"x": 300.0,
+					"y": 150.0,
+					"z": 0.0
+				}
+			},
+			"type": "MultiplyNode"
+		},
+		{
+			"id": "debug1",
+			"name": "Debug Node",
+			"parameters": {},
+			"properties": {
+				"position": {
+					"x": 600.0,
+					"y": 150.0,
+					"z": 0.0
+				}
+			},
+			"type": "DebugNode"
+		}
+	],
+	"connections": [
+		{
+			"destNodeId": "add1",
+			"inputPinId": "in1",
+			"outputPinId": "out",
+			"sourceNodeId": "const1"
+		},
+		{
+			"destNodeId": "add1",
+			"inputPinId": "in2",
+			"outputPinId": "out",
+			"sourceNodeId": "const2"
+		},
+		{
+			"destNodeId": "debug1",
+			"inputPinId": "inNum",
+			"outputPinId": "out",
+			"sourceNodeId": "add1"
+		}
+	]
+}

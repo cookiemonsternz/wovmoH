@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://bs7q07yt6nypg"]
+
+[ext_resource type="Script" uid="uid://1h2wx603xyn2" path="res://test_scene.gd" id="1_uhqqe"]
+[ext_resource type="PackedScene" uid="uid://b1lrgam4kcrji" path="res://graph/graph.tscn" id="3_sasra"]
+
+[node name="TestScene" type="Node2D" node_paths=PackedStringArray("graph_bridge", "graph")]
+script = ExtResource("1_uhqqe")
+graph_bridge = NodePath("GraphBridge")
+graph = NodePath("Graph")
+
+[node name="GraphBridge" type="GraphBridge" parent="."]
+
+[node name="Graph" parent="." instance=ExtResource("3_sasra")]

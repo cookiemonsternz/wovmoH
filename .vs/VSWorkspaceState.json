@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\godot-cpp\\include\\godot_cpp",
+    "\\godot-cpp\\include\\godot_cpp\\core",
+    "\\src",
+    "\\ui\\bin"
+  ],
+  "SelectedNode": "\\src\\register_types.cpp",
+  "PreviewInSolutionExplorer": false
+}

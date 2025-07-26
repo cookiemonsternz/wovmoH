@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://d3yqapmdrboot"]
+
+[ext_resource type="Script" uid="uid://dq0wuj8ursaav" path="res://graph/graph_node.gd" id="1_wpqmr"]
+
+[node name="GraphNode" type="GraphNode"]
+offset_right = 9.0
+offset_bottom = 55.0
+script = ExtResource("1_wpqmr")
