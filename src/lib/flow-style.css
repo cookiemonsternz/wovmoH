@@ -1,0 +1,32 @@
+.svelte-flow__node {
+    background-color: var(--surface) !important;
+    border-radius: 16px;
+    border-color: var(--highlight-med);
+    border-width: 1px;
+    border-style: solid;
+}
+
+.svelte-flow__handle {
+    display: block;
+    position: static;
+    align-self: center;
+
+    height: 8px;
+    width: 8px;
+}
+
+.svelte-flow__handle-left {
+    top: 0%;
+    left: 0%;
+    transform: translate(-50%, 0%);
+}
+
+.svelte-flow__handle-right {
+    top: 0%;
+    right: 0%;
+    transform: translate(50%, 0%);
+}
+
+.svelte-flow__background {
+    background-color: var(--base) !important;
+}

@@ -22,6 +22,7 @@ impl Node {
     pub fn to_dto(&self) -> NodeDto {
         NodeDto {
             id: self.id,
+            name: self.kind.descriptor().name,
             kind: self.kind.into(),
             position: self.ui_state.position,
             inputs: self
@@ -50,17 +51,19 @@ impl Node {
     }
 }
 
-#[derive(Copy, Clone, Deserialize, strum_macros::IntoStaticStr)]
+#[derive(Copy, Clone, Deserialize, strum_macros::IntoStaticStr, strum_macros::EnumIter)]
 pub enum NodeKind {
-    ConstantColor,
     ConstantNumber,
+    ConstantBoolean,
+    ConstantColor,
 }
 
 impl NodeKind {
     pub fn descriptor(&self) -> &'static NodeDescriptor {
         match self {
-            NodeKind::ConstantColor => &nodes::constants::color::CONSTANT_COLOR_DESCRIPTOR,
             NodeKind::ConstantNumber => &nodes::constants::number::CONSTANT_NUMBER_DESCRIPTOR,
+            NodeKind::ConstantBoolean => &nodes::constants::boolean::CONSTANT_BOOLEAN_DESCRIPTOR,
+            NodeKind::ConstantColor => &nodes::constants::color::CONSTANT_COLOR_DESCRIPTOR,
         }
     }
 }

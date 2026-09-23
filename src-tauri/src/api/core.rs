@@ -1,3 +1,4 @@
+use strum::IntoEnumIterator;
 // Tauri Imports
 use tauri::async_runtime::Mutex;
 use tauri::State;
@@ -17,7 +18,22 @@ pub async fn add_graph(state: State<'_, Mutex<GraphManager>>) -> Result<(), ()> 
             position: (0.0, 0.0),
         },
     );
-    graph_manager.get_graph_mut(0).connect(0, 0);
+    graph_manager.get_graph_mut(0).add_node(
+        NodeKind::ConstantColor,
+        NodeUIState {
+            position: (0.0, 0.0),
+        },
+    );
+    graph_manager.get_graph_mut(0).connect(0, 1);
+
+    graph_manager.get_graph_mut(0).add_node(
+        NodeKind::ConstantNumber,
+        NodeUIState {
+            position: (0.0, 0.0),
+        },
+    );
+
+    graph_manager.get_graph_mut(0).add_node(NodeKind::ConstantBoolean, NodeUIState { position: (5.0, 1.0) });
 
     println!("Added graph to GraphManager");
 
@@ -36,4 +52,10 @@ pub async fn get_graph_dto(
     println!("Got graph!");
 
     Ok(graph.to_dto())
+}
+
+#[tauri::command]
+pub async fn get_node_types(state: State<'_, Mutex<GraphManager>>) -> Result<Vec<&'static str>, ()> {
+    let kinds: Vec<&'static str> = NodeKind::iter().map(|x| x.into()).collect();
+    Ok(kinds)
 }

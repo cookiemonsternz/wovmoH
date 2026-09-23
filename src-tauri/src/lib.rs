@@ -24,7 +24,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             api::core::add_graph,
-            api::core::get_graph_dto
+            api::core::get_graph_dto,
+            api::core::get_node_types,
         ])
         .setup(|app| {
             app.manage(Mutex::new(GraphManager::new()));
