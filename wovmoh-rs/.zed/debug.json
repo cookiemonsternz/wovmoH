@@ -1,0 +1,49 @@
+// Project-local debug tasks
+//
+// For more documentation on how to configure debug tasks,
+// see: https://zed.dev/docs/debugger
+[
+  {
+    "label": "Build & Debug native binary",
+    "adapter": "CodeLLDB",
+    "build": {
+      "command": "cargo",
+      "args": ["build"]
+    },
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"]
+  },
+  {
+    "adapter": "CodeLLDB",
+    "label": "cargo test -p wovmoh-rs --all-targets",
+    "build": {
+      "label": "cargo test -p wovmoh-rs --all-targets",
+      "command": "cargo",
+      "args": [
+        "test",
+        "--package",
+        "wovmoh-rs",
+        "--all-targets",
+        "--no-run"
+      ],
+      "env": {
+        "RUSTC_TOOLCHAIN": "/home/chris/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+      },
+      "cwd": "/home/chris/Projects/wovmohGodot/wovmoh-rs",
+      "use_new_terminal": false,
+      "allow_concurrent_runs": false,
+      "reveal": "always",
+      "reveal_target": "dock",
+      "hide": "never",
+      "tags": [],
+      "shell": "system",
+      "show_summary": false,
+      "show_command": false,
+      "save": "none",
+      "hooks": []
+    },
+    "sourceLanguages": [
+      "rust"
+    ]
+  }
+]

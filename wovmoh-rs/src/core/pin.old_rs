@@ -1,0 +1,170 @@
+use std::usize;
+
+use crate::{
+    core::{graph::Graph, node::Node},
+    types::data_type::DataValue,
+};
+
+pub struct PinProperties {
+    pub id: usize,
+    pub parent_id: usize,
+}
+
+pub struct InputField {
+    pub properties: PinProperties,
+    pub value: DataValue,
+    connected_output_id: Option<usize>,
+}
+
+impl InputField {
+    pub fn new(id: usize, parent_id: usize, value: DataValue) -> InputField {
+        Self {
+            properties: PinProperties { id, parent_id },
+            value,
+            connected_output_id: None,
+        }
+    }
+
+    pub fn id(&self) -> usize {
+        self.properties.id
+    }
+
+    pub fn get_parent_id(&self) -> usize {
+        self.properties.parent_id
+    }
+
+    pub fn value(&self) -> &DataValue {
+        &self.value
+        // match self.connected_output_id {
+        //     Some(id) => &graph.get_output_pin(&id).value,
+        //     None => &self.value,
+        // }
+    }
+
+    // pub fn set_value(&mut self, value: DataValue) {
+    //     // Only if disconnected
+    //     self.value = value
+    // }
+
+    // Connections
+    pub fn is_connected(&self) -> bool {
+        match self.connected_output_id {
+            Some(_) => true,
+            None => false,
+        }
+    }
+
+    pub fn get_connected_output(&self) -> Option<usize> {
+        self.connected_output_id
+    }
+
+    pub fn clear_connected_output(&mut self) {
+        self.connected_output_id = None;
+    }
+
+    pub fn set_connected_output(&mut self, id: &usize) {
+        self.connected_output_id = Some(id.clone());
+    }
+
+    // pub fn connect(&mut self, output_pin_id: usize) {
+    //     self.connected_output_id = Some(output_pin_id);
+    // }
+
+    // pub fn disconnect(&mut self) {
+    //     match self.connected_output_id {
+    //         Some(_) => {
+    //             self.connected_output_id = None;
+    //         }
+    //         None => {
+    //             panic!()
+    //         }
+    //     }
+    // }
+}
+
+pub struct OutputPin {
+    properties: PinProperties,
+    value: DataValue,
+    connected_fields: Vec<usize>,
+}
+
+impl OutputPin {
+    pub fn new(id: usize, parent_id: usize) -> OutputPin {
+        Self {
+            properties: PinProperties { id, parent_id },
+            value: DataValue::Number(0.0),
+            connected_fields: Vec::new(),
+        }
+    }
+
+    pub fn id(&self) -> usize {
+        self.properties.id
+    }
+
+    pub fn get_parent_id(&self) -> usize {
+        self.properties.parent_id
+    }
+
+    pub fn value(&self) -> &DataValue {
+        &self.value
+    }
+
+    // pub fn set_value(&mut self, value: DataValue) {
+    //     self.value = value
+    // }
+
+    pub fn is_connected(&self) -> bool {
+        if self.connected_fields.len() > 0 {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn get_connected_inputs(&self) -> &Vec<usize> {
+        &self.connected_fields
+    }
+
+    pub fn clear_connected_fields(&mut self) {
+        self.connected_fields.clear()
+    }
+
+    pub fn remove_connected_field(&mut self, id: usize) {
+        let index = self.connected_fields.iter().position(|&x| x == id);
+        match index {
+            Some(connected_field_index) => {
+                self.connected_fields.remove(connected_field_index);
+            }
+            None => panic!(),
+        }
+    }
+
+    pub fn add_connected_field(&mut self, id: usize) {
+        self.connected_fields.push(id);
+    }
+
+    // pub fn connect(&mut self, input_field_id: &usize, graph: &mut Graph) {
+    //     let input_field = graph.get_input_field_mut(input_field_id);
+    //     input_field.connect(self.id());
+
+    //     self.connected_fields.push(input_field_id.clone());
+    // }
+
+    // pub fn disconnect(&mut self, input_field_id: usize) {
+    //     // Only remove from self, don't call disconnect on field as this function is called by the field
+    //     // In effect, we just don't want to call OutputPin.disconnect() in almost every case - instead
+    //     // use InputField.disconnect()
+    //     let index = self
+    //         .connected_fields
+    //         .iter()
+    //         .position(|&x| x == input_field_id);
+    //     match index {
+    //         Some(field_index) => {
+    //             self.connected_fields.remove(field_index);
+    //         }
+    //         None => {
+    //             panic!();
+    //         }
+    //     }
+    // }
+}
