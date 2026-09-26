@@ -13,7 +13,7 @@ config_version=5
 config/name="wovmoh gd"
 run/main_scene="uid://c8ohdes3vuauk"
 config/features=PackedStringArray("4.7", "Forward Plus")
-config/icon="res://icon.svg"
+run/low_processor_mode=true
 
 [autoload]
 
@@ -23,6 +23,10 @@ Backend="*uid://be10qf2t6er1q"
 
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[gui]
+
+theme/custom="uid://bslyqb3ebf084"
 
 [physics]
 

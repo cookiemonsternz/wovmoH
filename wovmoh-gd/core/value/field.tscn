@@ -1,0 +1,60 @@
+[gd_scene format=3 uid="uid://ctbcgxey4oqyp"]
+
+[ext_resource type="Script" uid="uid://6ocic63tx0l3" path="res://core/value/field.gd" id="1_gk1wn"]
+[ext_resource type="Texture2D" uid="uid://bwir6q5lbk0gs" path="res://addons/at-icons/node/arrow_left.svg" id="2_1xo6a"]
+[ext_resource type="Texture2D" uid="uid://cmbhu2ahqnvt4" path="res://addons/at-icons/node/arrow_right.svg" id="3_6o5vg"]
+[ext_resource type="Theme" uid="uid://bslyqb3ebf084" path="res://main_theme.tres" id="3_pjwbs"]
+
+[node name="Field" type="PanelContainer" unique_id=101809034]
+clip_children = 1
+custom_maximum_size = Vector2(250, -1)
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -12.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gk1wn")
+value = 0.6428
+
+[node name="LeftHBoxContainer" type="HBoxContainer" parent="." unique_id=44379452]
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="LeftButton" type="Button" parent="LeftHBoxContainer" unique_id=2003520490]
+layout_mode = 2
+icon = ExtResource("2_1xo6a")
+
+[node name="FieldName" type="Label" parent="LeftHBoxContainer" unique_id=472095772]
+layout_mode = 2
+theme = ExtResource("3_pjwbs")
+text = "Field Name"
+
+[node name="RightHBoxContainer" type="HBoxContainer" parent="." unique_id=546601802]
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="FieldValue" type="Label" parent="RightHBoxContainer" unique_id=1644955597]
+layout_mode = 2
+theme = ExtResource("3_pjwbs")
+text = "0.1"
+
+[node name="RightButton" type="Button" parent="RightHBoxContainer" unique_id=1013305360]
+layout_mode = 2
+icon = ExtResource("3_6o5vg")
+
+[node name="ProgressBar" type="ProgressBar" parent="." unique_id=1587224367]
+layout_mode = 2
+size_flags_vertical = 1
+theme_type_variation = &"ProgressSlider"
+max_value = 1.0
+step = 0.0
+value = 0.6428
+show_percentage = false
+
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

@@ -1,15 +1,8 @@
 use std::collections::{HashMap, VecDeque};
 
 use crate::{
-    core::{
-        input_field::*,
-        node::{self, *},
-        output_pin::*,
-    },
-    dto::{
-        connection_dto::ConnectionDto, graph_dto::GraphDto, input_field_dto::InputFieldDto,
-        node_dto::NodeDto, output_pin_dto::OutputPinDto,
-    },
+    core::{input_field::*, node::*, output_pin::*},
+    dto::{connection_dto::ConnectionDto, graph_dto::GraphDto},
     types::data_type::DataValue,
 };
 
@@ -336,6 +329,8 @@ impl Graph {
 
 #[cfg(test)]
 mod tests {
+    use crate::core::node;
+
     use super::*;
 
     #[test]
@@ -343,9 +338,7 @@ mod tests {
         let mut graph = Graph::new(0);
 
         let node_kind = node::NodeKind::ConstantNumber;
-        let ui_state = node::NodeUIState {
-            position: (0.0, 0.0),
-        };
+        let ui_state = node::NodeUIState::default();
 
         graph.add_node(node_kind, ui_state);
 
@@ -361,9 +354,7 @@ mod tests {
         let mut graph = Graph::new(0);
 
         let node_kind = node::NodeKind::ConstantNumber;
-        let ui_state = node::NodeUIState {
-            position: (0.0, 0.0),
-        };
+        let ui_state = node::NodeUIState::default();
 
         graph.add_node(node_kind, ui_state);
 
@@ -377,9 +368,7 @@ mod tests {
         let mut graph = Graph::new(0);
 
         let node_kind = node::NodeKind::ConstantNumber;
-        let ui_state = node::NodeUIState {
-            position: (0.0, 0.0),
-        };
+        let ui_state = node::NodeUIState::default();
 
         graph.add_node(node_kind, ui_state.clone());
 
@@ -395,9 +384,7 @@ mod tests {
         let mut graph = Graph::new(0);
 
         let node_kind = node::NodeKind::ConstantNumber;
-        let ui_state = node::NodeUIState {
-            position: (0.0, 0.0),
-        };
+        let ui_state = node::NodeUIState::default();
 
         graph.add_node(node_kind, ui_state.clone());
         graph.add_node(node_kind, ui_state.clone());

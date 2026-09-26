@@ -25,6 +25,7 @@ impl Node {
             name: self.kind.descriptor().name,
             kind: self.kind.into(),
             position: self.ui_state.position,
+            name_override: self.ui_state.name_override.clone(),
             inputs: self
                 .kind
                 .descriptor()
@@ -89,9 +90,10 @@ pub struct OutputDesc {
     pub data_type: DataType,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct NodeUIState {
     pub position: (f64, f64),
+    pub name_override: String,
 }
 
 // use crate::core::graph::Graph;

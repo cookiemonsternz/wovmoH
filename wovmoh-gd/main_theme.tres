@@ -1,0 +1,16 @@
+[gd_resource type="Theme" format=3 uid="uid://bslyqb3ebf084"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6o5vg"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pjwbs"]
+bg_color = Color(0.2784314, 0.44705883, 0.7019608, 1)
+
+[sub_resource type="SystemFont" id="SystemFont_gsqoc"]
+font_names = PackedStringArray("Jetbrains Mono")
+
+[resource]
+default_font = SubResource("SystemFont_gsqoc")
+ProgressSlider/base_type = &"ProgressBar"
+ProgressSlider/styles/background = SubResource("StyleBoxFlat_6o5vg")
+ProgressSlider/styles/fill = SubResource("StyleBoxFlat_pjwbs")

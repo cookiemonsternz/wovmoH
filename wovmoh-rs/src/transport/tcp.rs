@@ -121,7 +121,7 @@ fn handle_client(app: Arc<Mutex<App>>, stream: TcpStream) {
                     api::handler::handle_request(app.clone(), request, reader.get_mut());
                 }
                 Err(e) => {
-                    eprintln!("[{}] Invalid request: {:?}", addr, e);
+                    eprintln!("[{}] Error deserializing request: {:?}", addr, e);
                 }
             }, // Match serde::from_str
 

@@ -5,7 +5,7 @@ use crate::core::graph::GraphId;
 use super::connection_dto::ConnectionDto;
 use super::node_dto::NodeDto;
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct GraphDto {
     pub id: GraphId,
     pub nodes: Vec<NodeDto>,
