@@ -1,5 +1,76 @@
 [gd_resource type="Theme" format=3 uid="uid://bslyqb3ebf084"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gsqoc"]
+bg_color = Color(0.6624523, 0.66245234, 0.66245216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_470mv"]
+content_margin_left = 18.0
+content_margin_top = 12.0
+content_margin_right = 18.0
+content_margin_bottom = 12.0
+bg_color = Color(0.3809906, 0.4453569, 0.64607286, 0.6)
+border_color = Color(0.325, 0.325, 0.325, 0.6)
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0omi4"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.75)
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_58jnp"]
+content_margin_left = 18.0
+content_margin_top = 12.0
+content_margin_right = 18.0
+content_margin_bottom = 12.0
+bg_color = Color(0.08679619, 0.10114371, 0.1435144, 0.6)
+border_color = Color(0.625, 0.625, 0.625, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a2l2q"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.264553, 0.35694286, 0.5959092, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_466ly"]
+content_margin_left = 18.0
+content_margin_top = 12.0
+content_margin_right = 18.0
+content_margin_bottom = 12.0
+bg_color = Color(0.26018095, 0.8235137, 0.9287367, 0.6)
+border_color = Color(0.325, 0.325, 0.325, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6o5vg"]
 bg_color = Color(0, 0, 0, 1)
 
@@ -11,6 +82,15 @@ font_names = PackedStringArray("Jetbrains Mono")
 
 [resource]
 default_font = SubResource("SystemFont_gsqoc")
+FieldButton/base_type = &"Button"
+FieldButton/styles/hover = SubResource("StyleBoxFlat_gsqoc")
+FieldUnit/base_type = &"Label"
+FieldUnit/colors/font_color = Color(0.51718444, 0.5171845, 0.5171844, 1)
+GraphNode/styles/panel = SubResource("StyleBoxFlat_470mv")
+GraphNode/styles/panel_focus = SubResource("StyleBoxFlat_0omi4")
+GraphNode/styles/panel_selected = SubResource("StyleBoxFlat_58jnp")
+GraphNode/styles/titlebar = SubResource("StyleBoxFlat_a2l2q")
+GraphNode/styles/titlebar_selected = SubResource("StyleBoxFlat_466ly")
 ProgressSlider/base_type = &"ProgressBar"
 ProgressSlider/styles/background = SubResource("StyleBoxFlat_6o5vg")
 ProgressSlider/styles/fill = SubResource("StyleBoxFlat_pjwbs")

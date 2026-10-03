@@ -2,9 +2,9 @@ use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Default, Serialize, Debug)]
+#[derive(Copy, Clone, Default, Serialize, Debug, Deserialize)]
 pub struct Vec3 {
     e: [f64; 3],
 }

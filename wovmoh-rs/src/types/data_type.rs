@@ -1,5 +1,5 @@
 use super::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::cmp::PartialEq;
 use std::ops::{Add, Div, Mul, Sub};
 
@@ -12,7 +12,7 @@ pub enum DataType {
     Point3,
 }
 
-#[derive(Copy, Clone, Serialize, Debug)]
+#[derive(Copy, Clone, Serialize, Debug, Deserialize)]
 #[serde(tag = "type", content = "value")]
 pub enum DataValue {
     Number(f64),

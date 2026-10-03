@@ -57,5 +57,34 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             let kinds: Vec<&'static str> = NodeKind::iter().map(|x| x.into()).collect();
             write(ResponseData::NodeKinds { kinds }, request, stream);
         }
+        Command::SetInputFieldValue {
+            graph_id,
+            node_id,
+            field_index,
+            value,
+        } => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let graph = app.graphs.get_graph_mut(graph_id);
+            let field = graph.input_for_mut(node_id, field_index);
+            field.value = value;
+
+            write(ResponseData::Acknowledge, request, stream);
+        }
+        Command::Connect {
+            graph_id,
+            node_from,
+            pin_from,
+            node_to,
+            field_to,
+        } => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let graph = app.graphs.get_graph_mut(graph_id);
+            let pin_id = graph.output_id_for(node_from, pin_from);
+            let field_id = graph.input_id_for(node_to, field_to);
+            graph.connect(pin_id, field_id);
+            write(ResponseData::Acknowledge, request, stream);
+        }
     }
 }

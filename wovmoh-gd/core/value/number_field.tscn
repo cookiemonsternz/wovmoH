@@ -1,0 +1,93 @@
+[gd_scene format=3 uid="uid://ctbcgxey4oqyp"]
+
+[ext_resource type="Script" uid="uid://6ocic63tx0l3" path="res://core/value/number_field.gd" id="1_dr3d1"]
+[ext_resource type="Theme" uid="uid://bslyqb3ebf084" path="res://main_theme.tres" id="2_q5cpq"]
+
+[node name="NumberField" type="PanelContainer" unique_id=101809034]
+clip_children = 1
+custom_minimum_size = Vector2(250, 0)
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 451.0
+offset_top = -12.0
+offset_right = -451.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 1
+mouse_default_cursor_shape = 10
+script = ExtResource("1_dr3d1")
+
+[node name="Main" type="Control" parent="." unique_id=1958920198]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="Main" unique_id=1587224367]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 24.0
+size_flags_vertical = 1
+mouse_filter = 1
+max_value = 1.0
+step = 0.0
+show_percentage = false
+
+[node name="MarginContainer" type="MarginContainer" parent="Main" unique_id=1663295222]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 24.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_right = 8
+
+[node name="LeftHBoxContainer" type="HBoxContainer" parent="Main/MarginContainer" unique_id=44379452]
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="FieldName" type="Label" parent="Main/MarginContainer/LeftHBoxContainer" unique_id=472095772]
+unique_name_in_owner = true
+layout_mode = 2
+theme = ExtResource("2_q5cpq")
+
+[node name="RightHBoxContainer" type="HBoxContainer" parent="Main/MarginContainer" unique_id=546601802]
+unique_name_in_owner = true
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="FieldValue" type="Label" parent="Main/MarginContainer/RightHBoxContainer" unique_id=1644955597]
+unique_name_in_owner = true
+layout_mode = 2
+theme = ExtResource("2_q5cpq")
+text = "0.00"
+
+[node name="FieldUnit" type="Label" parent="Main/MarginContainer/RightHBoxContainer" unique_id=1914609981]
+unique_name_in_owner = true
+layout_mode = 2
+theme = ExtResource("2_q5cpq")
+theme_type_variation = &"FieldUnit"
+
+[node name="Lineedit" type="Control" parent="." unique_id=995728795]
+visible = false
+layout_mode = 2
+mouse_filter = 1
+
+[node name="LineEdit" type="LineEdit" parent="Lineedit" unique_id=1188247799]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "0.00"
+emoji_menu_enabled = false
+select_all_on_focus = true
+virtual_keyboard_type = 2
+
+[connection signal="gui_input" from="." to="." method="_on_gui_input"]
+[connection signal="text_submitted" from="Lineedit/LineEdit" to="." method="_on_line_edit_text_submitted"]

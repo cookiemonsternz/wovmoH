@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::core::graph::Graph;
 use crate::dto::input_field_dto::InputFieldDto;
@@ -35,6 +35,7 @@ impl Node {
                     name: x.name,
                     data_type: x.data_type,
                     value: DataValue::default(x.data_type),
+                    constraints: x.constraints,
                 })
                 .collect(),
             outputs: self
@@ -77,15 +78,24 @@ pub struct NodeDescriptor {
 }
 
 pub struct InputDesc {
-    pub id: usize,
     pub name: &'static str,
     pub data_type: DataType,
     pub default: DataValue,
+    pub constraints: InputConstraints,
+}
+
+#[derive(Serialize, Debug, Clone, Copy)]
+#[serde(tag = "type", content = "value")]
+pub enum InputConstraints {
+    Number { min: Option<f64>, max: Option<f64> },
+    Boolean,
+    Color,
+    Vector3,
+    Point3,
 }
 
 #[derive(Clone)]
 pub struct OutputDesc {
-    pub id: usize,
     pub name: &'static str,
     pub data_type: DataType,
 }

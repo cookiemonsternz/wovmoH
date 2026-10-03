@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://vv4m4n1vamvj"]
+
+[ext_resource type="Script" uid="uid://8j16mcvprum2" path="res://core/wovmoh_graph_node.gd" id="1_g28k5"]
+
+[node name="WovmohGraphNode" type="GraphNode" unique_id=614100904]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 1
+title = "Data"
+script = ExtResource("1_g28k5")
+kind = "Data"
+kind_title = "Data"
+title_override = "Data"
+metadata/_custom_type_script = "uid://8j16mcvprum2"

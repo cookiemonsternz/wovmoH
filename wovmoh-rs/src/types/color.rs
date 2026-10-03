@@ -1,7 +1,7 @@
 use std::cmp::PartialEq;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 pub enum ColorValue {
     RGB(f64, f64, f64),
@@ -10,7 +10,7 @@ pub enum ColorValue {
     HEXA([char; 8]),
 }
 
-#[derive(Copy, Clone, Default, Serialize, Debug)]
+#[derive(Copy, Clone, Default, Serialize, Debug, Deserialize)]
 pub struct Color {
     e: [f64; 4],
 }

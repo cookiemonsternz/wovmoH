@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://dqns0mwegkkqa"]
+
+[ext_resource type="Script" uid="uid://sipkhb7nw5v" path="res://wovmoh_graph_edit.gd" id="1_saael"]
+
+[node name="WovmohGraphEdit" type="GraphEdit" unique_id=771629123]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_saael")
+metadata/_custom_type_script = "uid://sipkhb7nw5v"

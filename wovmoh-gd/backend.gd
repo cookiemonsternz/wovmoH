@@ -71,3 +71,19 @@ func get_node_kinds() -> Array[String]:
 		return []
 	
 	return response["kinds"]
+
+func set_node_field_value(graph_id: int, node_id: int, field_index: int, type: String, value: Variant) -> bool:
+	var command = '"command":{"type":"SetInputFieldValue", "graph_id":%s, "node_id":%s, "field_index":%s,  "value":{"type":"%s", "value":%s}}' % [graph_id, node_id, field_index, type, value]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func connect_nodes(graph_id: int, node_from: int, pin_from: int, node_to: int, field_to: int) -> bool:
+	var command = '"command":{"type":"Connect", "graph_id":%s, "node_from":%s, "pin_from":%s, "node_to":%s, "field_to":%s}' % [graph_id, node_from, pin_from, node_to, field_to]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true

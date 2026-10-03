@@ -18,13 +18,12 @@ fn constant_boolean_process(inputs: Vec<DataValue>, outputs: &mut Vec<&mut DataV
 pub static CONSTANT_BOOLEAN_DESCRIPTOR: NodeDescriptor = NodeDescriptor {
     name: "Constant Boolean",
     inputs: &[InputDesc {
-        id: 0,
         name: "Boolean",
         data_type: DataType::Boolean,
         default: DataValue::default(DataType::Boolean),
+        constraints: InputConstraints::Boolean,
     }],
     outputs: &[OutputDesc {
-        id: 0,
         name: "Boolean",
         data_type: DataType::Boolean,
     }],

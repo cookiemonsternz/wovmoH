@@ -174,7 +174,38 @@ impl Graph {
         self.order_dirty = true;
     }
 
-    fn inputs_for(&self, node_id: NodeId) -> Vec<&InputField> {
+    pub fn input_id_for(&self, node_id: NodeId, field_index: usize) -> usize {
+        let node = match self.nodes.iter().find(|&x| x.id == node_id) {
+            Some(node) => node,
+            None => panic!("Node not found in Graph"),
+        };
+
+        node.inputs[field_index]
+    }
+
+    pub fn input_for(&self, node_id: NodeId, field_index: usize) -> &InputField {
+        let node = match self.nodes.iter().find(|&x| x.id == node_id) {
+            Some(node) => node,
+            None => panic!("Node not found in Graph"),
+        };
+
+        let id = node.inputs[field_index];
+
+        &self.inputs[id]
+    }
+
+    pub fn input_for_mut(&mut self, node_id: NodeId, field_index: usize) -> &mut InputField {
+        let node = match self.nodes.iter().find(|&x| x.id == node_id) {
+            Some(node) => node,
+            None => panic!("Node not found in Graph"),
+        };
+
+        let id = node.inputs[field_index];
+
+        &mut self.inputs[id]
+    }
+
+    pub fn inputs_for(&self, node_id: NodeId) -> Vec<&InputField> {
         let node = match self.nodes.iter().find(|&x| x.id == node_id) {
             Some(node) => node,
             None => panic!("Node not found in Graph"),
@@ -183,7 +214,62 @@ impl Graph {
         node.inputs.iter().map(|&id| &self.inputs[id]).collect()
     }
 
-    fn outputs_for(&self, node_id: NodeId) -> Vec<&OutputPin> {
+    pub fn inputs_for_mut(&mut self, node_id: NodeId) -> Vec<&mut InputField> {
+        let node = match self.nodes.iter().find(|&x| x.id == node_id) {
+            Some(node) => node,
+            None => panic!("Node not found in Graph"),
+        };
+
+        // node.outputs
+        //     .iter()
+        //     .map(|&id| &mut self.outputs[id])
+        //     .collect()
+        // Hacky (still safe but in future use Vec.get_many_mut())
+        let mut result = Vec::with_capacity(node.inputs.len());
+        let inputs = self.inputs.as_mut_ptr();
+
+        for &id in &node.inputs {
+            unsafe {
+                // Should be safe...
+                result.push(&mut *inputs.add(id));
+            }
+        }
+
+        result
+    }
+
+    pub fn output_id_for(&self, node_id: NodeId, pin_index: usize) -> usize {
+        let node = match self.nodes.iter().find(|&x| x.id == node_id) {
+            Some(node) => node,
+            None => panic!("Node not found in Graph"),
+        };
+
+        node.outputs[pin_index]
+    }
+
+    pub fn output_for(&self, node_id: NodeId, pin_index: usize) -> &OutputPin {
+        let node = match self.nodes.iter().find(|&x| x.id == node_id) {
+            Some(node) => node,
+            None => panic!("Node not found in Graph"),
+        };
+
+        let id = node.outputs[pin_index];
+
+        &self.outputs[id]
+    }
+
+    pub fn output_for_mut(&mut self, node_id: NodeId, pin_index: usize) -> &mut OutputPin {
+        let node = match self.nodes.iter().find(|&x| x.id == node_id) {
+            Some(node) => node,
+            None => panic!("Node not found in Graph"),
+        };
+
+        let id = node.outputs[pin_index];
+
+        &mut self.outputs[id]
+    }
+
+    pub fn outputs_for(&self, node_id: NodeId) -> Vec<&OutputPin> {
         let node = match self.nodes.iter().find(|&x| x.id == node_id) {
             Some(node) => node,
             None => panic!("Node not found in Graph"),
@@ -192,7 +278,7 @@ impl Graph {
         node.outputs.iter().map(|&id| &self.outputs[id]).collect()
     }
 
-    fn outputs_for_mut(&mut self, node_id: NodeId) -> Vec<&mut OutputPin> {
+    pub fn outputs_for_mut(&mut self, node_id: NodeId) -> Vec<&mut OutputPin> {
         let node = match self.nodes.iter().find(|&x| x.id == node_id) {
             Some(node) => node,
             None => panic!("Node not found in Graph"),

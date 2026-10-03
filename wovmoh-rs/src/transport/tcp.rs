@@ -122,6 +122,7 @@ fn handle_client(app: Arc<Mutex<App>>, stream: TcpStream) {
                 }
                 Err(e) => {
                     eprintln!("[{}] Error deserializing request: {:?}", addr, e);
+                    eprintln!("{}", &line)
                 }
             }, // Match serde::from_str
 
