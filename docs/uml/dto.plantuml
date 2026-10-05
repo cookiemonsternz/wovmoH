@@ -1,9 +1,11 @@
 @startuml
 'START DTO SECTION'
 struct NodeDto {
-  +usize id
+  +NodeId id
   +{static} &str kind
+  +{static} &str name
   +{field} (f32, f32) position
+  +{field} String name_override
 }
 
 struct InputFieldDto {
@@ -25,12 +27,21 @@ enum DataValueDto {
 }
 
 struct ConnectionDto {
-  +usize from
-  +usize to
+  +NodeId from_node
+  +usize from_index
+  +NodeId to_node
+  +usize to_index
 }
 
 struct GraphDto {
   +usize id
+}
+
+enum InputConstraints {
+  NUMBER { f64 min, f64 max }
+  BOOLEAN
+  COLOR
+  ...
 }
 
 GraphDto *--"0..*" NodeDto
@@ -38,6 +49,7 @@ GraphDto *--"0..*" ConnectionDto
 NodeDto *--"0..*" InputFieldDto
 NodeDto *--"0..*" OutputPinDto
 InputFieldDto *-- DataValueDto
+InputFieldDto *-- InputConstraints
 OutputPinDto *-- DataValueDto
 'END DTO SECTION'
 @enduml

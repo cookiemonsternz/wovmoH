@@ -1,7 +1,7 @@
 @startuml
 'START NODE SECTION'
 struct Node {
-  +usize id
+  +NodeId id
   +Vec<usize> inputs
   +Vec<usize> outputs
 }
@@ -21,12 +21,21 @@ struct NodeDescriptor {
 
 struct NodeUIState {
   +{field} (f32, f32) position
+  +{field} String name_override
 }
 
 struct InputDesc {
   +{static} &str name
   +{static} DataType data_type
   +{static} DataValue default
+  +{static} InputConstraints constraints
+}
+
+enum InputConstraints {
+  NUMBER { f64 min, f64 max }
+  BOOLEAN
+  COLOR
+  ...
 }
 
 struct OutputDesc {
@@ -38,20 +47,21 @@ Node *-- NodeKind
 Node *-- NodeUIState
 NodeKind *-- NodeDescriptor
 NodeDescriptor *--"0..*" InputDesc
+InputDesc *-- InputConstraints
 NodeDescriptor *--"0..*" OutputDesc
 
 'END NODE SECTION'
 'START FIELDS AND PINS SECTION'
 struct InputField {
   +usize parent
-  +u8 index
+  +usize index
   +DataValue value
   +Option<usize> connected_output
 }
 
 struct OutputPin {
   +usize parent
-  +u8 index
+  +usize index
   +DataValue value
   +Vec<usize> connections
 }
