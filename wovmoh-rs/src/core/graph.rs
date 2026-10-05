@@ -38,6 +38,10 @@ impl Graph {
         &self.nodes[node_id]
     }
 
+    pub fn get_node_mut(&mut self, node_id: NodeId) -> &mut Node {
+        &mut self.nodes[node_id]
+    }
+
     pub fn has_node(&self, node_id: NodeId) -> bool {
         return self.nodes.len() < node_id;
     }
@@ -51,7 +55,7 @@ impl Graph {
             inputs.push(self.inputs.len());
             self.inputs.push(InputField {
                 parent: self.nodes.len(),
-                index: i as u8,
+                index: i as usize,
                 value: input_desc.default,
                 connected_output: None,
             });
@@ -63,7 +67,7 @@ impl Graph {
             outputs.push(self.outputs.len());
             self.outputs.push(OutputPin {
                 parent: self.nodes.len(),
-                index: i as u8,
+                index: i as usize,
                 value: DataValue::default(output_desc.data_type.clone()),
                 connections: Vec::new(),
             });
@@ -83,73 +87,88 @@ impl Graph {
     }
 
     pub fn remove_node(&mut self, node_id: NodeId) {
-        // Swap and remove, then update node id.
-
         let node = self.nodes[node_id].clone();
 
+        // Disconnect all connections
+        for input_id in &node.inputs {
+            let input = &self.inputs[*input_id];
+            if input.connected_output.is_some() {
+                self.disconnect(*input_id);
+            }
+        }
+
+        for output_id in &node.outputs {
+            let output = &self.outputs[*output_id];
+            if output.connections.len() > 0 {
+                for connected_input_id in output.connections.clone() {
+                    self.disconnect(connected_input_id);
+                }
+            }
+        }
+
         // Swap and remove all inputs
-        for index in &node.inputs {
-            // Get the parent of the input that will be swapped and change the parents reference to the input to
-            // the current index
-            let swapped_input_id = self.inputs.len() - 1;
-            let swapped_input_parent = &mut self.nodes[self.inputs.last().unwrap().parent];
-            let swapped_input_index = swapped_input_parent
-                .inputs
-                .iter()
-                .find(|&x| *x == swapped_input_id)
-                .unwrap()
-                .clone();
+        for input_id in node.inputs {
+            let last_input_id = self.inputs.len() - 1;
 
-            // Set the input id at the input to be swapped to the id to be swapped to
-            swapped_input_parent.inputs[swapped_input_index] = *index;
+            if input_id != last_input_id {
+                let swapped_input = &self.inputs[last_input_id];
+                let parent = swapped_input.parent;
 
-            // Now swap
-            self.inputs.swap_remove(*index);
+                let index = self.nodes[parent]
+                    .inputs
+                    .iter()
+                    .position(|&id| id == last_input_id)
+                    .unwrap();
+
+                self.nodes[parent].inputs[index] = input_id;
+            }
+
+            self.inputs.swap_remove(input_id);
         }
 
         // Swap and remove all outputs
-        for index in node.outputs {
-            // Get parent of output that will be swapped, and change the parents ref to the output to the current index.
-            let swapped_output_id = self.outputs.len() - 1;
-            let swapped_output_parent = &mut self.nodes[self.outputs.last().unwrap().parent];
-            let swapped_output_index = swapped_output_parent
-                .inputs
-                .iter()
-                .find(|&x| *x == swapped_output_id)
-                .unwrap()
-                .clone();
+        for output_id in node.outputs {
+            let last_output_id = self.outputs.len() - 1;
 
-            swapped_output_parent.outputs[swapped_output_index] = index;
+            if output_id != last_output_id {
+                let swapped_output = &self.outputs[last_output_id];
+                let parent = swapped_output.parent;
 
-            // swap
-            self.outputs.swap_remove(index);
+                let index = self.nodes[parent]
+                    .outputs
+                    .iter()
+                    .position(|&id| id == last_output_id)
+                    .unwrap();
+
+                self.nodes[parent].outputs[index] = output_id;
+            }
+
+            self.outputs.swap_remove(output_id);
         }
 
         // Swap and remove node
+        let last_node_id = self.nodes.len() - 1;
         self.nodes.swap_remove(node_id);
 
-        if self.nodes.len() == 0 {
+        if self.nodes.is_empty() {
             self.order_dirty = true;
             return;
         }
 
-        // Update node at node_id
-        let node = &mut self.nodes[node_id];
-        node.id = node_id;
+        if node_id != last_node_id {
+            let node = &mut self.nodes[node_id];
+            node.id = node_id;
 
-        // Update all fields and pins parent ids
-        for input_id in &node.inputs {
-            let input_field = &mut self.inputs[*input_id];
-            input_field.parent = node_id;
+            for &input_id in &node.inputs {
+                self.inputs[input_id].parent = node_id;
+            }
+
+            for &output_id in &node.outputs {
+                self.outputs[output_id].parent = node_id;
+            }
         }
 
-        // Update all outputs
-        for output_id in &node.outputs {
-            let output_pin = &mut self.outputs[*output_id];
-            output_pin.parent = node_id;
-        }
-
-        self.order_dirty = true
+        self.order_dirty = true;
     }
 
     pub fn connect(&mut self, from: OutputId, to: InputId) {
@@ -397,8 +416,10 @@ impl Graph {
             for input_index in &node.inputs {
                 match self.inputs[*input_index].connected_output {
                     Some(output_pin_id) => connections.push(ConnectionDto {
-                        from: output_pin_id,
-                        to: *input_index,
+                        from_node: self.outputs[output_pin_id].parent,
+                        from_index: self.outputs[output_pin_id].index,
+                        to_node: node.id,
+                        to_index: self.inputs[*input_index].index,
                     }),
                     None => continue,
                 };

@@ -53,11 +53,14 @@ impl Node {
     }
 }
 
-#[derive(Copy, Clone, Deserialize, strum_macros::IntoStaticStr, strum_macros::EnumIter)]
+#[derive(
+    Debug, Copy, Clone, Serialize, Deserialize, strum_macros::IntoStaticStr, strum_macros::EnumIter,
+)]
 pub enum NodeKind {
     ConstantNumber,
     ConstantBoolean,
     ConstantColor,
+    AddNumbers,
 }
 
 impl NodeKind {
@@ -66,6 +69,7 @@ impl NodeKind {
             NodeKind::ConstantNumber => &nodes::constants::number::CONSTANT_NUMBER_DESCRIPTOR,
             NodeKind::ConstantBoolean => &nodes::constants::boolean::CONSTANT_BOOLEAN_DESCRIPTOR,
             NodeKind::ConstantColor => &nodes::constants::color::CONSTANT_COLOR_DESCRIPTOR,
+            NodeKind::AddNumbers => &nodes::maths::add::ADD_NUMBERS_DESCRIPTOR,
         }
     }
 }

@@ -65,7 +65,7 @@ func get_graph(id: int) -> Variant:
 	
 	return response["graph"]
 
-func get_node_kinds() -> Array[String]:
+func get_node_kinds() -> Array:
 	var response = await _send('{"id":%s,"command":{"type":"GetNodeKinds"}}')
 	if not response or response["type"] != "NodeKinds":
 		return []
@@ -81,7 +81,39 @@ func set_node_field_value(graph_id: int, node_id: int, field_index: int, type: S
 	return true
 
 func connect_nodes(graph_id: int, node_from: int, pin_from: int, node_to: int, field_to: int) -> bool:
-	var command = '"command":{"type":"Connect", "graph_id":%s, "node_from":%s, "pin_from":%s, "node_to":%s, "field_to":%s}' % [graph_id, node_from, pin_from, node_to, field_to]
+	var command = '"command":{"type":"ConnectNodes", "graph_id":%s, "node_from":%s, "pin_from":%s, "node_to":%s, "field_to":%s}' % [graph_id, node_from, pin_from, node_to, field_to]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func disconnect_nodes(graph_id: int, node_from: int, pin_from: int, node_to: int, field_to: int) -> bool:
+	var command = '"command":{"type":"DisconnectNodes", "graph_id":%s, "node_from":%s, "pin_from":%s, "node_to":%s, "field_to":%s}' % [graph_id, node_from, pin_from, node_to, field_to]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func add_node(graph_id: int, kind: String, position: Vector2) -> bool:
+	var command = '"command":{"type":"AddNode", "graph_id":%s, "kind":"%s", "position": %s}' % [graph_id, kind, [position.x, position.y]]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func set_node_position(graph_id: int, node_id: int, position: Vector2) -> bool:
+	var command = '"command":{"type":"SetNodePosition", "graph_id":%s, "node_id":%s, "position": %s}' % [graph_id, node_id, [position.x, position.y]]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func delete_node(graph_id: int, node_id: int) -> bool:
+	var command = '"command":{"type":"DeleteNode", "graph_id":%s, "node_id":%s}' % [graph_id, node_id]
 	var response = await _send('{"id":%s,' + command + "}")
 	if not response or response["type"] != "Acknowledge":
 		return false

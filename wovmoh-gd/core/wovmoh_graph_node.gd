@@ -39,3 +39,8 @@ func add_output(data: Variant):
 	var field_data_type = Data.get_field_type_from_data(data)
 	set_slot(num_slots, false, 0, Color.BLACK, true, field_data_type, Data.PORT_COLORS[field_data_type])
 	num_slots += 1
+
+
+func _on_dragged(from: Vector2, to: Vector2) -> void:
+	var graph_id = get_parent().graph_id
+	Backend.set_node_position(graph_id, node_id, to)

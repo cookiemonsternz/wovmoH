@@ -7,7 +7,7 @@ pub type OutputId = usize;
 
 pub struct OutputPin {
     pub parent: NodeId,
-    pub index: u8,
+    pub index: usize,
     pub value: DataValue,
     pub connections: Vec<InputId>,
 }

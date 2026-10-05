@@ -1,48 +1,49 @@
-// use crate::core;
-// use crate::types;
+use std::ops::DerefMut;
 
-// use core::node;
-// use core::pin;
-// use types::data_type;
+use crate::core::node::*;
+use crate::types::data_type::*;
 
-// pub struct AddNumberNode {
-//     properties: node::NodeProperties,
-//     input_fields: Vec<pin::InputField>,
-//     output_pins: Vec<pin::OutputPin>,
-// }
+fn add_numbers_process(inputs: Vec<DataValue>, outputs: &mut Vec<&mut DataValue>) {
+    let input_number_a = match inputs[0] {
+        DataValue::Number(number) => number,
+        _ => panic!("Expected Number"),
+    };
+    let input_number_b = match inputs[1] {
+        DataValue::Number(number) => number,
+        _ => panic!("Expected Number"),
+    };
 
-// impl AddNumberNode {
-//     pub fn new(id: i32, num_a: f64, num_b: f64) {
-//         let node = AddNumberNode {
-//             properties: node::NodeProperties { id },
-//             input_fields: Vec::new(),
-//             output_pins: Vec::new(),
-//         };
+    match outputs[0].deref_mut() {
+        DataValue::Number(n) => *n = input_number_a + input_number_b,
+        _ => panic!("Output is not number"),
+    }
+}
 
-//         // Main Field - Color
-//         node.add_input_field(0, data_type::DataValue::Number(num_a));
-//         node.add_input_field(1, data_type::DataValue::Number(num_b));
-//         // Main Output Pin
-//         node.add_output_pin(0);
-//     }
-// }
-
-// impl node::Node for AddNumberNode {
-//     fn properties(&self) -> &node::NodeProperties {
-//         &self.properties
-//     }
-
-//     fn input_fields(&self) -> &Vec<pin::InputField> {
-//         &self.input_fields
-//     }
-
-//     fn output_pins(&self) -> &Vec<pin::OutputPin> {
-//         &self.output_pins
-//     }
-
-//     // Output value = input value;
-//     fn process(&self) {
-//         let sum = self.get_input_field(0).value + self.get_input_field(1).value;
-//         self.get_output_pin(0).set_value(sum);
-//     }
-// }
+pub static ADD_NUMBERS_DESCRIPTOR: NodeDescriptor = NodeDescriptor {
+    name: "Add",
+    inputs: &[
+        InputDesc {
+            name: "Number A",
+            data_type: DataType::Number,
+            default: DataValue::default(DataType::Number),
+            constraints: InputConstraints::Number {
+                min: None,
+                max: None,
+            },
+        },
+        InputDesc {
+            name: "Number B",
+            data_type: DataType::Number,
+            default: DataValue::default(DataType::Number),
+            constraints: InputConstraints::Number {
+                min: None,
+                max: None,
+            },
+        },
+    ],
+    outputs: &[OutputDesc {
+        name: "Sum",
+        data_type: DataType::Number,
+    }],
+    process: add_numbers_process,
+};

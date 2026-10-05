@@ -1,9 +1,11 @@
 use serde::Serialize;
 
-use crate::core::{input_field::InputId, output_pin::OutputId};
+use crate::core::node::NodeId;
 
 #[derive(Debug, Serialize)]
 pub struct ConnectionDto {
-    pub from: InputId,
-    pub to: OutputId,
+    pub from_node: NodeId,
+    pub from_index: usize,
+    pub to_node: NodeId,
+    pub to_index: usize,
 }

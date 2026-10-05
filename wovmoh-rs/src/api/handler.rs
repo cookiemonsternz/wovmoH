@@ -40,7 +40,7 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                 NodeKind::ConstantBoolean,
                 NodeUIState {
                     position: (5.0, 1.0),
-                    name_override: "Name override".to_string(),
+                    name_override: "Test Name override!".to_string(),
                 },
             );
             write(ResponseData::Acknowledge, request, stream);
@@ -71,7 +71,7 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
 
             write(ResponseData::Acknowledge, request, stream);
         }
-        Command::Connect {
+        Command::ConnectNodes {
             graph_id,
             node_from,
             pin_from,
@@ -85,6 +85,55 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             let field_id = graph.input_id_for(node_to, field_to);
             graph.connect(pin_id, field_id);
             write(ResponseData::Acknowledge, request, stream);
+        }
+        Command::DisconnectNodes {
+            graph_id,
+            node_from,
+            pin_from,
+            node_to,
+            field_to,
+        } => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let graph = app.graphs.get_graph_mut(graph_id);
+            let field_id = graph.input_id_for(node_to, field_to);
+            graph.disconnect(field_id);
+            write(ResponseData::Acknowledge, request, stream);
+        }
+        Command::AddNode {
+            graph_id,
+            kind,
+            position,
+        } => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let graph = app.graphs.get_graph_mut(graph_id);
+            graph.add_node(
+                kind,
+                NodeUIState {
+                    position: position,
+                    name_override: String::new(),
+                },
+            );
+            write(ResponseData::Acknowledge, request, stream);
+        }
+        Command::SetNodePosition {
+            graph_id,
+            node_id,
+            position,
+        } => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let graph = app.graphs.get_graph_mut(graph_id);
+            let node = graph.get_node_mut(node_id);
+            node.ui_state.position = position;
+            write(ResponseData::Acknowledge, request, stream);
+        }
+        Command::DeleteNode { graph_id, node_id } => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let graph = app.graphs.get_graph_mut(graph_id);
+            graph.remove_node(node_id);
         }
     }
 }

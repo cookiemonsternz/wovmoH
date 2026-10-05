@@ -8,5 +8,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+right_disconnects = true
 script = ExtResource("1_saael")
 metadata/_custom_type_script = "uid://sipkhb7nw5v"
