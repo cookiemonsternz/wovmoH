@@ -1,0 +1,37 @@
+@startuml
+
+[GraphManager]
+[InputsManager]
+[OutputsManager]
+[HardwareInterface]
+[OpenDMXManager]
+[ArtnetManager]
+[Frontend]
+[MIDIManager] as MIDI1
+[MIDIManager] as MIDI2
+
+() "MIDI" as MIDIPORT1
+() "MIDI" as MIDIPORT2
+
+InputsManager -> GraphManager 
+InputsManager <-- MIDI2
+
+GraphManager <- OutputsManager
+
+OutputsManager --> MIDI1
+OutputsManager --> HardwareInterface
+
+HardwareInterface --> OpenDMXManager
+HardwareInterface --> ArtnetManager
+
+OpenDMXManager --> DMX
+ArtnetManager --> ArtNet
+
+Frontend <--> GraphManager
+Frontend <--> InputsManager
+Frontend <--> OutputsManager
+
+MIDI1 --> MIDIPORT1
+MIDI2 <-- MIDIPORT2
+
+@enduml

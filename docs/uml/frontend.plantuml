@@ -1,0 +1,40 @@
+@startuml
+interface NodeState {
+    +number id
+    +string kind
+    +{ x: number, y: number } position
+}
+
+interface InputFieldState {
+    +number id
+    +string name
+    +DataType dataType
+    +DataValue value
+}
+
+interface OutputPinState {
+    +number id
+    +string name
+    +string dataType
+}
+
+interface ConnectionState {
+    +number from
+    +number to
+}
+
+interface GraphState {
+    +number id
+}
+note left: Stored in GraphManagerState\nas a svelte store.
+
+interface GraphManagerState {
+    +number | null activeId
+}
+
+GraphManagerState *--"0..*" GraphState
+GraphState *--"0..*" NodeState
+GraphState *--"0..*" ConnectionState
+NodeState *--"0..*" InputFieldState
+NodeState *--"0..*" OutputPinState
+@enduml

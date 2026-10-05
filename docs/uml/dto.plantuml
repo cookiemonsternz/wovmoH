@@ -1,0 +1,43 @@
+@startuml
+'START DTO SECTION'
+struct NodeDto {
+  +usize id
+  +{static} &str kind
+  +{field} (f32, f32) position
+}
+
+struct InputFieldDto {
+  +&str name
+  +&str data_type
+}
+
+struct OutputPinDto {
+  +&str name
+  +&str data_type
+}
+
+enum DataValueDto {
+  +{field} Number(f64)
+  +{field} Boolean(bool)
+  +{field} Color(Color)
+  +{field} Vector3(Vec3)
+  +{field} Point3(Point3)
+}
+
+struct ConnectionDto {
+  +usize from
+  +usize to
+}
+
+struct GraphDto {
+  +usize id
+}
+
+GraphDto *--"0..*" NodeDto
+GraphDto *--"0..*" ConnectionDto
+NodeDto *--"0..*" InputFieldDto
+NodeDto *--"0..*" OutputPinDto
+InputFieldDto *-- DataValueDto
+OutputPinDto *-- DataValueDto
+'END DTO SECTION'
+@enduml

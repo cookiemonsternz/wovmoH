@@ -1,0 +1,86 @@
+@startuml
+'START NODE SECTION'
+struct Node {
+  +usize id
+  +Vec<usize> inputs
+  +Vec<usize> outputs
+}
+
+enum NodeKind {
+  ADD
+  SUBTRACT
+  CONSTANT_NUMBER
+  ...
+  NodeDescriptor descriptor()
+}
+
+struct NodeDescriptor {
+  +{static} &str name
+  +fn(Vec<DataValue>, &mut Vec<&mut DataValue>) process
+}
+
+struct NodeUIState {
+  +{field} (f32, f32) position
+}
+
+struct InputDesc {
+  +{static} &str name
+  +{static} DataType data_type
+  +{static} DataValue default
+}
+
+struct OutputDesc {
+  +{static} &str name
+  +{static} DataType data_type
+}
+
+Node *-- NodeKind
+Node *-- NodeUIState
+NodeKind *-- NodeDescriptor
+NodeDescriptor *--"0..*" InputDesc
+NodeDescriptor *--"0..*" OutputDesc
+
+'END NODE SECTION'
+'START FIELDS AND PINS SECTION'
+struct InputField {
+  +usize parent
+  +u8 index
+  +DataValue value
+  +Option<usize> connected_output
+}
+
+struct OutputPin {
+  +usize parent
+  +u8 index
+  +DataValue value
+  +Vec<usize> connections
+}
+'END FIELDS AND PINS SECTION'
+'START GRAPH SECTION'
+struct Graph {
+  +usize id
+  -HashMap<usize, usize> nodes_map
+  -Vec<usize> execution_order
+  -bool order_dirty
+  +&Node get_node(node_id: usize)
+  +void add_node(kind: NodeKind)
+  +void remove_node(node_id: usize)
+  +void connect(from: usize, to: usize)
+  +void disconnect(input_field: usize)
+
+  +void process()
+
+  -Vec<& InputField> inputs_for(node_id: usize)
+  -Vec<& OutputPin> outputs_for(node_id: usize)
+  -Vec<&mut OutputPin> outputs_for_mut(node_id: usize)
+  -Vec<DataValue> input_values_for(node_id: usize)
+  -Vec<&mut DataValue> output_values_for(node_id: usize)
+  -HashMap<usize, u32> calculate_indegrees()
+  -void sort_nodes()
+}
+
+Graph *--"0..*"Node
+Graph *--"0..*"InputField
+Graph *--"0..*"OutputPin
+'END GRAPHS SECTION'
+@enduml
