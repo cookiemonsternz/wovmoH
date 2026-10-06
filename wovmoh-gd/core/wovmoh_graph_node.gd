@@ -18,9 +18,9 @@ var num_slots = 0
 
 func _update_title():
 	if title_override != "":
-		title = title_override
+		title = " " + title_override
 	else:
-		title = kind_title
+		title = " " + kind_title
 
 func add_input(data: Variant, index: int):
 	var field: Field = field_scene.instantiate()
