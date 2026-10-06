@@ -7,9 +7,9 @@ const VECTOR3 = 3
 const POINT3 = 4
 
 const PORT_COLORS = {
-	NUMBER: Color.RED,
-	BOOLEAN: Color.GREEN,
-	COLOR: Color.BLUE,
+	NUMBER: Color("#eb6f92"),
+	BOOLEAN: Color("#3e8fb0"),
+	COLOR: Color("#c4a7e7"),
 	VECTOR3: Color.YELLOW,
 	POINT3: Color.PINK,
 }
