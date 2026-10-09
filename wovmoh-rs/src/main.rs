@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use crate::{app::App, io::midi::input::MidiManager, transport::tcp};
+use crate::{app::App, io::midi::MidiManager, transport::tcp};
 
 pub mod api;
 pub mod app;
