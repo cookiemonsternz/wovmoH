@@ -7,6 +7,19 @@
 [ext_resource type="Script" uid="uid://cx134ygjinuul" path="res://create_midi_input_binding_panel_container.gd" id="4_272bh"]
 [ext_resource type="Script" uid="uid://kdkke7l33dsl" path="res://bound_inputs.gd" id="5_lquwl"]
 [ext_resource type="PackedScene" uid="uid://bpsuyfth2na3y" path="res://subscription_table_element.tscn" id="6_7mycd"]
+[ext_resource type="Script" uid="uid://bdnt75xwpnt6r" path="res://midi_device_menu.gd" id="8_5vw27"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1s724"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1s724"]
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_1s724"]
+color = Color(1, 1, 1, 0.5372549)
+grow_begin = -36.0
+vertical = true
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dlfm4"]
 
 [node name="Main" type="Control" unique_id=1679250522]
 layout_mode = 3
@@ -135,12 +148,8 @@ disabled = true
 text = "Perform"
 flat = true
 
-[node name="RightItems" type="HBoxContainer" parent="VBoxContainer/TopBar" unique_id=677717537]
-layout_mode = 2
-mouse_filter = 2
-alignment = 2
-
 [node name="GraphView" type="Control" parent="VBoxContainer" unique_id=456806078]
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
 
@@ -160,6 +169,7 @@ split_offset = -360
 [node name="WovmohGraphEdit" type="GraphEdit" parent="VBoxContainer/GraphView/HSplitContainer" unique_id=1802487965]
 layout_mode = 2
 size_flags_horizontal = 3
+scroll_offset = Vector2(0, -307)
 right_disconnects = true
 script = ExtResource("1_ig7tw")
 metadata/_custom_type_script = "uid://sipkhb7nw5v"
@@ -342,8 +352,87 @@ script = ExtResource("5_lquwl")
 [node name="SubscriptionTableElement" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/BoundInputs/PanelContainer/MarginContainer/VBoxContainer/BoundInputs" unique_id=713747997 instance=ExtResource("6_7mycd")]
 layout_mode = 2
 
+[node name="RightItems" type="HBoxContainer" parent="." unique_id=677717537]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -24.0
+offset_bottom = 24.0
+grow_horizontal = 0
+alignment = 2
+
+[node name="MidiDeviceMenu" type="FoldableContainer" parent="RightItems" unique_id=345414143]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1s724")
+folded = true
+script = ExtResource("8_5vw27")
+
+[node name="MarginContainer" type="MarginContainer" parent="RightItems/MidiDeviceMenu" unique_id=1077849757]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="HBoxContainer" type="HBoxContainer" parent="RightItems/MidiDeviceMenu/MarginContainer" unique_id=1634742176]
+layout_mode = 2
+theme_override_constants/separation = 32
+
+[node name="Device" type="VBoxContainer" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer" unique_id=653395860]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="Title" type="Label" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/Device" unique_id=1517963328]
+layout_mode = 2
+text = "Devices"
+
+[node name="HSeparator" type="HSeparator" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/Device" unique_id=171704946]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/Device" unique_id=68117678]
+layout_mode = 2
+text = "Arturia Microfreak"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer" unique_id=211162178]
+layout_mode = 2
+
+[node name="Input" type="VBoxContainer" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/HBoxContainer" unique_id=1638039695]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/HBoxContainer/Input" unique_id=2099200372]
+layout_mode = 2
+text = "IN"
+
+[node name="HSeparator" type="HSeparator" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/HBoxContainer/Input" unique_id=727841850]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_1s724")
+
+[node name="CheckBox" type="CheckBox" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/HBoxContainer/Input" unique_id=1971183538]
+layout_mode = 2
+
+[node name="VSeparator" type="VSeparator" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/HBoxContainer" unique_id=1970406867]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_1s724")
+
+[node name="Output" type="VBoxContainer" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/HBoxContainer" unique_id=1492576659]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/HBoxContainer/Output" unique_id=614808514]
+layout_mode = 2
+text = "OUT"
+
+[node name="HSeparator" type="HSeparator" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/HBoxContainer/Output" unique_id=710170790]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_dlfm4")
+
+[node name="CheckBox" type="CheckBox" parent="RightItems/MidiDeviceMenu/MarginContainer/HBoxContainer/HBoxContainer/Output" unique_id=1657397707]
+layout_mode = 2
+
 [connection signal="pressed" from="VBoxContainer/TopBar/CenterItems/ManageButton" to="." method="_on_manage_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/TopBar/CenterItems/EditButton" to="." method="_on_edit_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/TopBar/CenterItems/PerformButton" to="." method="_on_perform_button_pressed"]
 [connection signal="visibility_changed" from="VBoxContainer/ManageMenu/Midi Config" to="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/BoundInputs/PanelContainer/MarginContainer/VBoxContainer/BoundInputs" method="_on_midi_config_visibility_changed"]
 [connection signal="pressed" from="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Panels/CreateMidiInputBindingPanelContainer/MarginContainer/VBoxContainer/CreateButton/Button" to="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Panels/CreateMidiInputBindingPanelContainer" method="_on_button_pressed"]
+[connection signal="folding_changed" from="RightItems/MidiDeviceMenu" to="RightItems/MidiDeviceMenu" method="_on_folding_changed"]

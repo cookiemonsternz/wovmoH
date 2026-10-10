@@ -59,5 +59,6 @@ func _on_gui_input(event: InputEvent) -> void:
 		get_child(0, true).hide()
 		get_child(0).mouse_filter = MOUSE_FILTER_IGNORE
 		get_child(0).mouse_behavior_recursive = MOUSE_BEHAVIOR_DISABLED
+		get_child(0).connected = true
 		var node: WovmohGraphNode = get_parent()
 		node.set_slot_enabled_left(node.get_input_port_slot(get_child(0).index), false)
