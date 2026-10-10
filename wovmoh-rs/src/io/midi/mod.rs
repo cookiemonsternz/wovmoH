@@ -1,6 +1,7 @@
 use std::{
     any::Any,
     collections::HashMap,
+    ops::Index,
     sync::{Arc, RwLock, mpsc::Sender},
 };
 
@@ -9,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::{graph::GraphId, node::NodeId};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type")]
 pub enum MIDIDataMessage {
     NoteOff {
@@ -54,6 +55,7 @@ pub struct MidiInputFieldSubscriptionDTO {
     pub message: MIDIDataMessage,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct MidiInputFieldSubscription {
     pub graph: GraphId,
     pub field: usize,
@@ -89,6 +91,17 @@ impl MidiManager {
 
     pub fn subscribe(&mut self, subscription: MidiInputFieldSubscription) {
         self.input_subscriptions.write().unwrap().push(subscription);
+    }
+
+    pub fn unsubscribe(&mut self, subscription: MidiInputFieldSubscription) {
+        let index = self
+            .input_subscriptions
+            .read()
+            .unwrap()
+            .iter()
+            .position(|x| *x == subscription)
+            .unwrap();
+        self.input_subscriptions.write().unwrap().swap_remove(index);
     }
 
     fn parse_midi_message(message: &[u8]) -> MIDIDataMessage {

@@ -4,8 +4,9 @@ use std::sync::{Arc, Mutex};
 
 use strum::IntoEnumIterator;
 
+use crate::core::graph;
 use crate::core::node::{NodeKind, NodeUIState};
-use crate::io::midi::{MidiInputFieldSubscriptionDTO, MidiManager};
+use crate::io::midi::{MidiInputFieldSubscription, MidiInputFieldSubscriptionDTO, MidiManager};
 use crate::{
     api::{
         request::{Command, Request},
@@ -180,12 +181,11 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             let app = lock.as_mut().unwrap();
             let graph = app.graphs.get_graph_mut(graph_id);
             let field_id = graph.input_id_for(node_id, field_index);
-            app.midi
-                .subscribe(crate::io::midi::MidiInputFieldSubscription {
-                    graph: graph_id,
-                    field: field_id,
-                    message: message.clone(),
-                });
+            app.midi.subscribe(MidiInputFieldSubscription {
+                graph: graph_id,
+                field: field_id,
+                message: message.clone(),
+            });
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::GetMidiInputSubscriptions => {
@@ -209,6 +209,25 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                 request,
                 stream,
             );
+        }
+        Command::UnsubscribeMidiInputFromField {
+            graph_id,
+            node_id,
+            field_index,
+            ref message,
+        } => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let field_id = app
+                .graphs
+                .get_graph(graph_id)
+                .input_id_for(node_id, field_index);
+            app.midi.unsubscribe(MidiInputFieldSubscription {
+                graph: graph_id,
+                field: field_id,
+                message: message.clone(),
+            });
+            write(ResponseData::Acknowledge, request, stream);
         }
     }
 }

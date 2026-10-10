@@ -55,4 +55,9 @@ func _on_mouse_exited() -> void:
 func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.is_pressed() and event.button_index == MouseButton.MOUSE_BUTTON_LEFT:
 		State.field_selected.emit(self)
-		State.current_state = State.State.NORMAL
+		State.current_state = State.NORMAL
+		get_child(0, true).hide()
+		get_child(0).mouse_filter = MOUSE_FILTER_IGNORE
+		get_child(0).mouse_behavior_recursive = MOUSE_BEHAVIOR_DISABLED
+		var node: WovmohGraphNode = get_parent()
+		node.set_slot_enabled_left(node.get_input_port_slot(get_child(0).index), false)

@@ -168,3 +168,11 @@ func get_midi_input_subscriptions() -> Array[Variant]:
 		return []
 	
 	return response["subscriptions"]
+
+func unsubscribe_midi_input_from_field(graph_id: int, node_id: int, field_index: int, message: Variant):
+	var command = '"command":{"type":"UnsubscribeMidiInputFromField", "graph_id":%s, "node_id":%s, "field_index":%s, "message":%s}' % [graph_id, node_id, field_index, message]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true

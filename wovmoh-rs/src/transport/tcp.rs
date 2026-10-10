@@ -115,14 +115,14 @@ fn handle_client(app: Arc<Mutex<App>>, stream: TcpStream) {
                 break;
             }
 
-            Ok(_) => match serde_json::from_str::<Request>(&line) {
+            Ok(_) => match serde_json::from_str::<Request>(&line.replace("<null>", "null")) {
                 Ok(request) => {
                     println!("[{}] {:?}", addr, request);
                     api::handler::handle_request(app.clone(), request, reader.get_mut());
                 }
                 Err(e) => {
                     eprintln!("[{}] Error deserializing request: {:?}", addr, e);
-                    eprintln!("{}", &line)
+                    eprintln!("{}", &line.replace("<null>", "null"))
                 }
             }, // Match serde::from_str
 

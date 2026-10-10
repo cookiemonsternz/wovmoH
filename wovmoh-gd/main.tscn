@@ -15,6 +15,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 script = ExtResource("1_h2yge")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=725711878]
@@ -29,6 +30,7 @@ theme_override_constants/separation = 4
 [node name="TopBar" type="PanelContainer" parent="VBoxContainer" unique_id=1183425445]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
+mouse_filter = 1
 
 [node name="LeftItems" type="HBoxContainer" parent="VBoxContainer/TopBar" unique_id=817289506]
 layout_mode = 2
@@ -135,27 +137,37 @@ flat = true
 
 [node name="RightItems" type="HBoxContainer" parent="VBoxContainer/TopBar" unique_id=677717537]
 layout_mode = 2
+mouse_filter = 2
 alignment = 2
 
-[node name="GraphView" type="HSplitContainer" parent="VBoxContainer" unique_id=1321183847]
+[node name="GraphView" type="Control" parent="VBoxContainer" unique_id=456806078]
 layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer/GraphView" unique_id=1321183847]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 2
 theme_override_constants/minimum_grab_thickness = 4
-split_offsets = PackedInt32Array(-368)
-split_offset = -368
+split_offsets = PackedInt32Array(-360)
+split_offset = -360
 
-[node name="WovmohGraphEdit" type="GraphEdit" parent="VBoxContainer/GraphView" unique_id=1802487965]
+[node name="WovmohGraphEdit" type="GraphEdit" parent="VBoxContainer/GraphView/HSplitContainer" unique_id=1802487965]
 layout_mode = 2
 size_flags_horizontal = 3
 right_disconnects = true
 script = ExtResource("1_ig7tw")
 metadata/_custom_type_script = "uid://sipkhb7nw5v"
 
-[node name="SidePanel" type="Control" parent="VBoxContainer/GraphView" unique_id=1802487605]
+[node name="SidePanel" type="Control" parent="VBoxContainer/GraphView/HSplitContainer" unique_id=1802487605]
 layout_mode = 2
 
-[node name="Panel" type="Panel" parent="VBoxContainer/GraphView/SidePanel" unique_id=1650105395]
+[node name="Panel" type="Panel" parent="VBoxContainer/GraphView/HSplitContainer/SidePanel" unique_id=1650105395]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -163,7 +175,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/GraphView/SidePanel" unique_id=634932672]
+[node name="Label" type="Label" parent="VBoxContainer/GraphView/HSplitContainer/SidePanel" unique_id=634932672]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -178,8 +190,36 @@ grow_horizontal = 2
 grow_vertical = 2
 text = "PLACEHOLDER"
 
-[node name="ManageMenu" type="TabContainer" parent="VBoxContainer" unique_id=28540461]
+[node name="SelectingFieldPopup" type="MarginContainer" parent="VBoxContainer/GraphView" unique_id=1663878235]
+unique_name_in_owner = true
 visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -40.0
+offset_right = 144.0
+grow_vertical = 0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer/GraphView/SelectingFieldPopup" unique_id=381549952]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/GraphView/SelectingFieldPopup/PanelContainer" unique_id=1170998411]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Label" type="Label" parent="VBoxContainer/GraphView/SelectingFieldPopup/PanelContainer/MarginContainer" unique_id=2131877776]
+layout_mode = 2
+text = "SELECTING INPUT"
+
+[node name="ManageMenu" type="TabContainer" parent="VBoxContainer" unique_id=28540461]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 12
@@ -273,7 +313,6 @@ icon = ExtResource("4_1bvp3")
 
 [node name="BoundInputs" type="VBoxContainer" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer" unique_id=1282634893]
 layout_mode = 2
-script = ExtResource("5_lquwl")
 
 [node name="PanelContainer" type="PanelContainer" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/BoundInputs" unique_id=175051669]
 layout_mode = 2
@@ -296,11 +335,15 @@ horizontal_alignment = 1
 [node name="HSeparator" type="HSeparator" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/BoundInputs/PanelContainer/MarginContainer/VBoxContainer" unique_id=390525462]
 layout_mode = 2
 
-[node name="SubscriptionTableElement" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/BoundInputs/PanelContainer/MarginContainer/VBoxContainer" unique_id=713747997 instance=ExtResource("6_7mycd")]
+[node name="BoundInputs" type="VBoxContainer" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/BoundInputs/PanelContainer/MarginContainer/VBoxContainer" unique_id=649452104]
+layout_mode = 2
+script = ExtResource("5_lquwl")
+
+[node name="SubscriptionTableElement" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/BoundInputs/PanelContainer/MarginContainer/VBoxContainer/BoundInputs" unique_id=713747997 instance=ExtResource("6_7mycd")]
 layout_mode = 2
 
 [connection signal="pressed" from="VBoxContainer/TopBar/CenterItems/ManageButton" to="." method="_on_manage_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/TopBar/CenterItems/EditButton" to="." method="_on_edit_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/TopBar/CenterItems/PerformButton" to="." method="_on_perform_button_pressed"]
-[connection signal="visibility_changed" from="VBoxContainer/ManageMenu/Midi Config" to="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/BoundInputs" method="_on_midi_config_visibility_changed"]
+[connection signal="visibility_changed" from="VBoxContainer/ManageMenu/Midi Config" to="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/BoundInputs/PanelContainer/MarginContainer/VBoxContainer/BoundInputs" method="_on_midi_config_visibility_changed"]
 [connection signal="pressed" from="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Panels/CreateMidiInputBindingPanelContainer/MarginContainer/VBoxContainer/CreateButton/Button" to="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Panels/CreateMidiInputBindingPanelContainer" method="_on_button_pressed"]

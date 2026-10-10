@@ -74,4 +74,10 @@ pub enum Command {
         message: MIDIDataMessage,
     },
     GetMidiInputSubscriptions,
+    UnsubscribeMidiInputFromField {
+        graph_id: GraphId,
+        node_id: NodeId,
+        field_index: usize,
+        message: MIDIDataMessage,
+    },
 }

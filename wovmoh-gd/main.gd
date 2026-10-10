@@ -11,7 +11,7 @@ func _process(delta: float) -> void:
 	pass
 
 func get_current_graph() -> WovmohGraphEdit:
-	return $VBoxContainer/GraphView/WovmohGraphEdit
+	return $VBoxContainer/GraphView/HSplitContainer/WovmohGraphEdit
 
 
 func _on_edit_button_pressed() -> void:
