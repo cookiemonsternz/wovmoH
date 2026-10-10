@@ -1,6 +1,10 @@
-use std::any::Any;
+use std::{
+    any::Any,
+    sync::{Arc, RwLock, mpsc::Sender},
+};
 
 use midir::{Ignore, MidiInput, MidiInputConnection, MidiInputPort, MidiOutput};
+use serde::{Deserialize, Serialize};
 
 use crate::core::graph::GraphId;
 
@@ -34,6 +38,12 @@ pub enum MIDIDataMessage {
     SysEx,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PortDescriptor {
+    name: String,
+    id: String,
+}
+
 pub struct MidiInputFieldSubscription {
     pub graph: GraphId,
     pub field: usize,
@@ -48,7 +58,8 @@ pub struct MidiEvent {
 
 pub struct MidiManager {
     input_connections: Vec<MidiInputConnection<()>>,
-    input_subscriptions: Vec<MidiInputFieldSubscription>,
+    input_subscriptions: Arc<RwLock<Vec<MidiInputFieldSubscription>>>,
+    tx: Sender<MidiEvent>,
 }
 
 fn matches_filter<T: PartialEq + Clone>(filter: &Option<T>, actual: &Option<T>) -> bool {
@@ -58,15 +69,16 @@ fn matches_filter<T: PartialEq + Clone>(filter: &Option<T>, actual: &Option<T>) 
 }
 
 impl MidiManager {
-    pub fn new() -> MidiManager {
+    pub fn new(tx: Sender<MidiEvent>) -> MidiManager {
         MidiManager {
             input_connections: Vec::new(),
-            input_subscriptions: Vec::new(),
+            input_subscriptions: Arc::new(RwLock::new(Vec::new())),
+            tx,
         }
     }
 
     pub fn subscribe(&mut self, subscription: MidiInputFieldSubscription) {
-        self.input_subscriptions.push(subscription);
+        self.input_subscriptions.write().unwrap().push(subscription);
     }
 
     fn parse_midi_message(message: &[u8]) -> MIDIDataMessage {
@@ -112,9 +124,12 @@ impl MidiManager {
         midi_message.unwrap()
     }
 
-    pub fn handle_midi_message(&self, message: MIDIDataMessage) -> Vec<MidiEvent> {
+    pub fn handle_midi_message(
+        subscriptions: &[MidiInputFieldSubscription],
+        message: MIDIDataMessage,
+    ) -> Vec<MidiEvent> {
         let mut events = Vec::new();
-        for subscription in &self.input_subscriptions {
+        for subscription in subscriptions {
             let matches = match (&subscription.message, &message) {
                 (
                     MIDIDataMessage::NoteOff {
@@ -144,8 +159,8 @@ impl MidiManager {
                     },
                     MIDIDataMessage::ControlChange { controller, data },
                 ) => {
-                    matches_filter(filter_controller, filter_data)
-                        && matches_filter(controller, data)
+                    matches_filter(filter_controller, controller)
+                        && matches_filter(filter_data, data)
                 }
                 (
                     MIDIDataMessage::ProgramChange {
@@ -217,17 +232,50 @@ impl MidiManager {
         }
     }
 
-    pub fn connect_input(&mut self, port_index: usize) {
+    pub fn get_available_input_ports() -> Vec<PortDescriptor> {
         let mut midi_input = MidiInput::new("Test input").expect("Could not create MIDI input");
         midi_input.ignore(Ignore::None);
 
-        let in_port = &midi_input.ports()[port_index];
+        midi_input
+            .ports()
+            .iter()
+            .map(|x| PortDescriptor {
+                name: midi_input.port_name(x).expect("Could not get port name"),
+                id: x.id(),
+            })
+            .collect()
+    }
+
+    pub fn get_available_output_ports() -> Vec<PortDescriptor> {
+        let midi_output =
+            MidiOutput::new("midir test output").expect("Could not create MIDI output");
+
+        midi_output
+            .ports()
+            .iter()
+            .map(|x| PortDescriptor {
+                name: midi_output.port_name(x).expect("Could not get port name"),
+                id: x.id(),
+            })
+            .collect()
+    }
+
+    pub fn connect_input(&mut self, port_id: String) {
+        let mut midi_input = MidiInput::new("Test input").expect("Could not create MIDI input");
+        midi_input.ignore(Ignore::None);
+
+        let in_port = &midi_input
+            .find_port_by_id(&port_id)
+            .expect("No available port with id");
 
         let in_port_name = midi_input
             .port_name(in_port)
             .expect("Could not get port name");
 
         println!("Connecting to: {}", in_port_name);
+
+        let subscriptions = Arc::clone(&self.input_subscriptions);
+        let tx = self.tx.clone();
 
         // _conn_in needs to be a named parameter, because it needs to be kept alive until the end of the scope
         self.input_connections.push(
@@ -238,7 +286,13 @@ impl MidiManager {
                     move |stamp, message, _| {
                         // println!("{}: {:?} (len = {})", stamp, message, message.len());
                         let message: MIDIDataMessage = MidiManager::parse_midi_message(message);
-                        println!("{:?}", message)
+                        let events: Vec<MidiEvent> = {
+                            let subscriptions = subscriptions.read().unwrap();
+                            MidiManager::handle_midi_message(&subscriptions, message)
+                        };
+                        for event in events {
+                            tx.send(event);
+                        }
                     },
                     (),
                 )

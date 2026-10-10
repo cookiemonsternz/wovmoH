@@ -1,4 +1,4 @@
-use crate::core::graph::*;
+use crate::{core::graph::*, io::midi::MidiEvent};
 
 pub struct GraphManager {
     graphs: Vec<Graph>,
@@ -20,5 +20,10 @@ impl GraphManager {
 
     pub fn get_graph_mut(&mut self, id: GraphId) -> &mut Graph {
         &mut self.graphs[id]
+    }
+
+    pub fn handle_midi_event(&mut self, event: MidiEvent) {
+        let graph = self.get_graph_mut(event.graph);
+        graph.update_midi_input(event.field, &event.message);
     }
 }

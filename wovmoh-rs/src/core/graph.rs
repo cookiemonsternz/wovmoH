@@ -3,6 +3,7 @@ use std::collections::{HashMap, VecDeque};
 use crate::{
     core::{input_field::*, node::*, output_pin::*},
     dto::{connection_dto::ConnectionDto, graph_dto::GraphDto},
+    io::midi::MIDIDataMessage,
     types::data_type::DataValue,
 };
 
@@ -430,6 +431,115 @@ impl Graph {
             id: self.id,
             nodes: self.nodes.iter().map(|x| x.to_dto()).collect(),
             connections: connections,
+        }
+    }
+
+    pub fn update_midi_input(&mut self, field_index: usize, message: &MIDIDataMessage) {
+        let input = self.inputs.get_mut(field_index).unwrap();
+        match message {
+            MIDIDataMessage::NoteOff { note, velocity } => match input.value {
+                DataValue::Number(_) => input.value = DataValue::Number(velocity.unwrap() as f64),
+                DataValue::Boolean(_) => input.value = DataValue::Boolean(false),
+                DataValue::Color(color) => eprintln!(
+                    "Cannot set a Color field with a midi input of type NoteOff {{note: {}, velocity: {}}}",
+                    note.unwrap(),
+                    velocity.unwrap()
+                ),
+                DataValue::Vector3(vec3) => eprintln!(
+                    "Cannot set a Vector3 field with a midi input of type NoteOff {{note: {}, velocity: {}}}",
+                    note.unwrap(),
+                    velocity.unwrap()
+                ),
+                DataValue::Point3(vec3) => eprintln!(
+                    "Cannot set a Point3 field with a midi input of type NoteOff {{note: {}, velocity: {}}}",
+                    note.unwrap(),
+                    velocity.unwrap()
+                ),
+            },
+            MIDIDataMessage::NoteOn { note, velocity } => match input.value {
+                DataValue::Number(_) => input.value = DataValue::Number(velocity.unwrap() as f64),
+                DataValue::Boolean(_) => input.value = DataValue::Boolean(true),
+                DataValue::Color(color) => eprintln!(
+                    "Cannot set a Color field with a midi input of type NoteOn {{note: {}, velocity: {}}}",
+                    note.unwrap(),
+                    velocity.unwrap()
+                ),
+                DataValue::Vector3(vec3) => eprintln!(
+                    "Cannot set a Vector3 field with a midi input of type NoteOn {{note: {}, velocity: {}}}",
+                    note.unwrap(),
+                    velocity.unwrap()
+                ),
+                DataValue::Point3(vec3) => eprintln!(
+                    "Cannot set a Point3 field with a midi input of type NoteOn {{note: {}, velocity: {}}}",
+                    note.unwrap(),
+                    velocity.unwrap()
+                ),
+            },
+            MIDIDataMessage::PolyphonicAftertouch { note, pressure } => match input.value {
+                DataValue::Number(_) => input.value = DataValue::Number(pressure.unwrap() as f64),
+                DataValue::Boolean(_) => {
+                    input.value =
+                        DataValue::Boolean(if pressure.unwrap() < 128 { false } else { true })
+                }
+                DataValue::Color(color) => eprintln!(
+                    "Cannot set a Color field with a midi input of type PolyphonicAftertouch {{note: {}, pressure: {}}}",
+                    note.unwrap(),
+                    pressure.unwrap()
+                ),
+                DataValue::Vector3(vec3) => eprintln!(
+                    "Cannot set a Vector3 field with a midi input of type PolyphonicAftertouch {{note: {}, pressure: {}}}",
+                    note.unwrap(),
+                    pressure.unwrap()
+                ),
+                DataValue::Point3(vec3) => eprintln!(
+                    "Cannot set a Point3 field with a midi input of type PolyphonicAftertouch {{note: {}, pressure: {}}}",
+                    note.unwrap(),
+                    pressure.unwrap()
+                ),
+            },
+            MIDIDataMessage::ControlChange { controller, data } => match input.value {
+                DataValue::Number(_) => input.value = DataValue::Number(data.unwrap() as f64),
+                DataValue::Boolean(_) => {
+                    input.value = DataValue::Boolean(if data.unwrap() < 128 { false } else { true })
+                }
+                DataValue::Color(color) => eprintln!(
+                    "Cannot set a Color field with a midi input of type ControlChange {{controller: {}, data: {}}}",
+                    controller.unwrap(),
+                    data.unwrap()
+                ),
+                DataValue::Vector3(vec3) => eprintln!(
+                    "Cannot set a Vector3 field with a midi input of type ControlChange {{controller: {}, data: {}}}",
+                    controller.unwrap(),
+                    data.unwrap()
+                ),
+                DataValue::Point3(vec3) => eprintln!(
+                    "Cannot set a Point3 field with a midi input of type ControlChange {{controller: {}, data: {}}}",
+                    controller.unwrap(),
+                    data.unwrap()
+                ),
+            },
+            MIDIDataMessage::ProgramChange { program } => todo!(),
+            MIDIDataMessage::ChannelAftertouch { pressure } => todo!(),
+            MIDIDataMessage::PitchWheel { pitch } => match input.value {
+                DataValue::Number(_) => input.value = DataValue::Number(pitch.unwrap() as f64),
+                DataValue::Boolean(_) => {
+                    input.value =
+                        DataValue::Boolean(if pitch.unwrap() < 128 { false } else { true })
+                }
+                DataValue::Color(color) => eprintln!(
+                    "Cannot set a Color field with a midi input of type ControlChange {{pitch: {}}}",
+                    pitch.unwrap(),
+                ),
+                DataValue::Vector3(vec3) => eprintln!(
+                    "Cannot set a Vector3 field with a midi input of type ControlChange {{pitch: {}}}",
+                    pitch.unwrap(),
+                ),
+                DataValue::Point3(vec3) => eprintln!(
+                    "Cannot set a Point3 field with a midi input of type ControlChange {{pitch: {}}}",
+                    pitch.unwrap(),
+                ),
+            },
+            MIDIDataMessage::SysEx => todo!(),
         }
     }
 }

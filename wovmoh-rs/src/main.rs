@@ -13,10 +13,11 @@ pub mod types;
 
 fn main() {
     let app = Arc::new(Mutex::new(App::new()));
-    tcp::run(app);
-    MidiManager::print_available_input_ports();
-    MidiManager::print_available_output_ports();
-    let mut midi_manager = MidiManager::new();
-    midi_manager.connect_input(3);
-    loop {}
+    tcp::run(app.clone());
+    loop {
+        {
+            let mut app_guard = app.lock().expect("App mutex poisoned");
+            app_guard.process_midi_events();
+        }
+    }
 }

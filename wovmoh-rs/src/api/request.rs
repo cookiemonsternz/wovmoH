@@ -60,4 +60,6 @@ pub enum Command {
         graph_id: GraphId,
         node_id: NodeId,
     },
+    GetAvailableMidiInputs,
+    GetAvailableMidiOutputs,
 }

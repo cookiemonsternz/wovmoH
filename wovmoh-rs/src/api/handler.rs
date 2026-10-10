@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use strum::IntoEnumIterator;
 
 use crate::core::node::{NodeKind, NodeUIState};
+use crate::io::midi::MidiManager;
 use crate::{
     api::{
         request::{Command, Request},
@@ -134,6 +135,24 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             let app = lock.as_mut().unwrap();
             let graph = app.graphs.get_graph_mut(graph_id);
             graph.remove_node(node_id);
+        }
+        Command::GetAvailableMidiInputs => {
+            write(
+                ResponseData::AvailableMidiInputs {
+                    inputs: MidiManager::get_available_input_ports(),
+                },
+                request,
+                stream,
+            );
+        }
+        Command::GetAvailableMidiOutputs => {
+            write(
+                ResponseData::AvailableMidiOutputs {
+                    outputs: MidiManager::get_available_output_ports(),
+                },
+                request,
+                stream,
+            );
         }
     }
 }

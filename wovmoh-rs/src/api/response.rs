@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::{core::graph::GraphId, dto::graph_dto::GraphDto};
+use crate::{core::graph::GraphId, dto::graph_dto::GraphDto, io::midi::PortDescriptor};
 
 #[derive(Debug, Serialize)]
 pub struct Response {
@@ -15,4 +15,6 @@ pub enum ResponseData {
     GraphCreated { id: GraphId },
     GraphData { graph: GraphDto },
     NodeKinds { kinds: Vec<&'static str> },
+    AvailableMidiInputs { inputs: Vec<PortDescriptor> },
+    AvailableMidiOutputs { outputs: Vec<PortDescriptor> },
 }
