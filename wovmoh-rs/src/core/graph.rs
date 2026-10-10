@@ -194,6 +194,14 @@ impl Graph {
         self.order_dirty = true;
     }
 
+    pub fn node_for_input(&self, input_field_id: InputId) -> NodeId {
+        self.inputs[input_field_id].parent
+    }
+
+    pub fn input_index_for_input(&self, input_field_id: InputId) -> usize {
+        self.inputs[input_field_id].index
+    }
+
     pub fn input_id_for(&self, node_id: NodeId, field_index: usize) -> usize {
         let node = match self.nodes.iter().find(|&x| x.id == node_id) {
             Some(node) => node,

@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://ucvrebpyecka"]
+
+[ext_resource type="Script" uid="uid://bgwcy61alurcp" path="res://test/midi_test.gd" id="1_5fs65"]
+
+[node name="MidiTest" type="Control" unique_id=1895820402]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_5fs65")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=183207057]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1798417552]
+layout_mode = 2
+
+[node name="ConnectLineEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer" unique_id=1397643986]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "PORT ID"
+
+[node name="ConnectButton" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=386949497]
+layout_mode = 2
+text = "Connect Input"
+
+[node name="GetConnectedInputsButton" type="Button" parent="VBoxContainer" unique_id=872015715]
+layout_mode = 2
+text = "Get Connected Inputs"
+
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/ConnectButton" to="." method="_on_connect_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/GetConnectedInputsButton" to="." method="_on_get_connected_inputs_button_pressed"]

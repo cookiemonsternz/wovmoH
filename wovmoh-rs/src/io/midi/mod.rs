@@ -1,14 +1,16 @@
 use std::{
     any::Any,
+    collections::HashMap,
     sync::{Arc, RwLock, mpsc::Sender},
 };
 
 use midir::{Ignore, MidiInput, MidiInputConnection, MidiInputPort, MidiOutput};
 use serde::{Deserialize, Serialize};
 
-use crate::core::graph::GraphId;
+use crate::core::{graph::GraphId, node::NodeId};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
 pub enum MIDIDataMessage {
     NoteOff {
         note: Option<u8>,
@@ -44,6 +46,14 @@ pub struct PortDescriptor {
     id: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MidiInputFieldSubscriptionDTO {
+    pub graph_id: GraphId,
+    pub node_id: NodeId,
+    pub field_index: usize,
+    pub message: MIDIDataMessage,
+}
+
 pub struct MidiInputFieldSubscription {
     pub graph: GraphId,
     pub field: usize,
@@ -57,8 +67,8 @@ pub struct MidiEvent {
 }
 
 pub struct MidiManager {
-    input_connections: Vec<MidiInputConnection<()>>,
-    input_subscriptions: Arc<RwLock<Vec<MidiInputFieldSubscription>>>,
+    input_connections: HashMap<String, MidiInputConnection<()>>,
+    pub input_subscriptions: Arc<RwLock<Vec<MidiInputFieldSubscription>>>,
     tx: Sender<MidiEvent>,
 }
 
@@ -71,7 +81,7 @@ fn matches_filter<T: PartialEq + Clone>(filter: &Option<T>, actual: &Option<T>) 
 impl MidiManager {
     pub fn new(tx: Sender<MidiEvent>) -> MidiManager {
         MidiManager {
-            input_connections: Vec::new(),
+            input_connections: HashMap::new(),
             input_subscriptions: Arc::new(RwLock::new(Vec::new())),
             tx,
         }
@@ -278,7 +288,8 @@ impl MidiManager {
         let tx = self.tx.clone();
 
         // _conn_in needs to be a named parameter, because it needs to be kept alive until the end of the scope
-        self.input_connections.push(
+        self.input_connections.insert(
+            in_port.id(),
             midi_input
                 .connect(
                     in_port,
@@ -298,5 +309,31 @@ impl MidiManager {
                 )
                 .expect("Could not connect to port."),
         );
+    }
+
+    pub fn disconnect_input(&mut self, port_id: String) {
+        self.input_connections.remove(&port_id).unwrap().close();
+    }
+
+    pub fn get_connected_inputs(&self) -> Vec<PortDescriptor> {
+        let mut midi_input = MidiInput::new("Test input").expect("Could not create MIDI input");
+        midi_input.ignore(Ignore::None);
+
+        let mut connections = Vec::new();
+
+        for connection in self.input_connections.iter() {
+            connections.push(PortDescriptor {
+                name: midi_input
+                    .port_name(
+                        &midi_input
+                            .find_port_by_id(connection.0)
+                            .expect("Could not find port from id"),
+                    )
+                    .expect("Could not get port name"),
+                id: connection.0.to_string(),
+            });
+        }
+
+        connections
     }
 }

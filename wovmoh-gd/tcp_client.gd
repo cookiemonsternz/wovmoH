@@ -13,6 +13,9 @@ func _ready() -> void:
 	_stream.poll()
 	_status = _stream.get_status()
 
+func is_connected_to_host() -> bool:
+	return _status == _stream.STATUS_CONNECTED
+
 @warning_ignore("unused_parameter")
 func _process(delta: float) -> void:
 	_stream.poll()

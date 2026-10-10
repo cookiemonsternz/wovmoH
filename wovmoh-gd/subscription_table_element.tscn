@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://bpsuyfth2na3y"]
+
+[ext_resource type="Texture2D" uid="uid://bgaokgo4ivbwr" path="res://addons/at-icons/node/trash_can.svg" id="1_b37cm"]
+[ext_resource type="Script" uid="uid://cubls46cwey42" path="res://subscription_table_element.gd" id="1_xe7a2"]
+
+[node name="SubscriptionTableElement" type="MarginContainer" unique_id=713747997]
+script = ExtResource("1_xe7a2")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1833738563]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MessageType" type="Label" parent="HBoxContainer" unique_id=1444036616]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "ControlChange"
+
+[node name="VSeparator" type="VSeparator" parent="HBoxContainer" unique_id=792039100]
+layout_mode = 2
+
+[node name="Note_Controller" type="Label" parent="HBoxContainer" unique_id=777878705]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "12"
+
+[node name="VSeparator2" type="VSeparator" parent="HBoxContainer" unique_id=1325136587]
+layout_mode = 2
+
+[node name="Field" type="Label" parent="HBoxContainer" unique_id=1172322769]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Input: Number A | Node: Add"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="." unique_id=1984465772]
+layout_mode = 2
+alignment = 2
+
+[node name="Button" type="Button" parent="HBoxContainer2" unique_id=1567545857]
+layout_mode = 2
+icon = ExtResource("1_b37cm")

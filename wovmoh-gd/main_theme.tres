@@ -77,11 +77,19 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_detail = 5
 
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_23bnl"]
+color = Color(0.9254902, 0.9254902, 0.9254902, 0.47058824)
+thickness = 2
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6o5vg"]
 bg_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pjwbs"]
 bg_color = Color(0.2784314, 0.44705883, 0.7019608, 1)
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_gsqoc"]
+color = Color(0.9254902, 0.9254902, 0.9254902, 0.47058824)
+vertical = true
 
 [sub_resource type="SystemFont" id="SystemFont_gsqoc"]
 font_names = PackedStringArray("Jetbrains Mono")
@@ -97,6 +105,8 @@ GraphNode/styles/panel_focus = SubResource("StyleBoxFlat_0omi4")
 GraphNode/styles/panel_selected = SubResource("StyleBoxFlat_58jnp")
 GraphNode/styles/titlebar = SubResource("StyleBoxFlat_a2l2q")
 GraphNode/styles/titlebar_selected = SubResource("StyleBoxFlat_466ly")
+HSeparator/styles/separator = SubResource("StyleBoxLine_23bnl")
 ProgressSlider/base_type = &"ProgressBar"
 ProgressSlider/styles/background = SubResource("StyleBoxFlat_6o5vg")
 ProgressSlider/styles/fill = SubResource("StyleBoxFlat_pjwbs")
+VSeparator/styles/separator = SubResource("StyleBoxLine_gsqoc")

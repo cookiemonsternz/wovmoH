@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use strum::IntoEnumIterator;
 
 use crate::core::node::{NodeKind, NodeUIState};
-use crate::io::midi::MidiManager;
+use crate::io::midi::{MidiInputFieldSubscriptionDTO, MidiManager};
 use crate::{
     api::{
         request::{Command, Request},
@@ -150,6 +150,62 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                 ResponseData::AvailableMidiOutputs {
                     outputs: MidiManager::get_available_output_ports(),
                 },
+                request,
+                stream,
+            );
+        }
+        Command::ConnectMidiInput { ref id } => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            app.midi.connect_input(id.to_string());
+            write(ResponseData::Acknowledge, request, stream);
+        }
+        Command::GetConnectedMidiInputs => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let inputs = app.midi.get_connected_inputs();
+            write(
+                ResponseData::ConnectedMidiInputs { inputs },
+                request,
+                stream,
+            );
+        }
+        Command::SubscribeMidiInputToField {
+            graph_id,
+            node_id,
+            field_index,
+            ref message,
+        } => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let graph = app.graphs.get_graph_mut(graph_id);
+            let field_id = graph.input_id_for(node_id, field_index);
+            app.midi
+                .subscribe(crate::io::midi::MidiInputFieldSubscription {
+                    graph: graph_id,
+                    field: field_id,
+                    message: message.clone(),
+                });
+            write(ResponseData::Acknowledge, request, stream);
+        }
+        Command::GetMidiInputSubscriptions => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let mut subscriptions: Vec<MidiInputFieldSubscriptionDTO> = Vec::new();
+            for subscription in app.midi.input_subscriptions.read().unwrap().iter() {
+                let graph = app.graphs.get_graph(subscription.graph);
+                let node = graph.node_for_input(subscription.field);
+                let index = graph.input_index_for_input(subscription.field);
+                subscriptions.push(MidiInputFieldSubscriptionDTO {
+                    graph_id: subscription.graph,
+                    node_id: node,
+                    field_index: index,
+                    message: subscription.message.clone(),
+                });
+            }
+
+            write(
+                ResponseData::MidiInputSubscriptions { subscriptions },
                 request,
                 stream,
             );

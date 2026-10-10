@@ -10,6 +10,11 @@ func _ready() -> void:
 	
 	client.connect_to_host("127.0.0.1", 7878)
 
+func is_connected_to_host() -> bool:
+	if !client: return false
+	if !client.is_connected_to_host(): return false
+	return true
+
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_right"):
 		print(await add_example_graph(0))
@@ -119,3 +124,47 @@ func delete_node(graph_id: int, node_id: int) -> bool:
 		return false
 	
 	return true
+
+func get_available_midi_inputs() -> Variant:
+	var response = await _send('{"id":%s,"command":{"type":"GetAvailableMidiInputs"}}')
+	if not response or response["type"] != "AvailableMidiInputs":
+		return []
+	
+	return response["inputs"]
+
+func get_available_midi_outputs() -> Variant:
+	var response = await _send('{"id":%s,"command":{"type":"GetAvailableMidiOutputs"}}')
+	if not response or response["type"] != "AvailableMidiOutputs":
+		return []
+	
+	return response["outputs"]
+
+func connect_midi_input(id: String) -> bool:
+	var command = '"command":{"type":"ConnectMidiInput", "id":"%s"}' % id
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func get_connected_midi_inputs() -> Array[Variant]:
+	var response = await _send('{"id":%s,"command":{"type":"GetConnectedMidiInputs"}}')
+	if not response or response["type"] != "ConnectedMidiInputs":
+		return []
+	
+	return response["inputs"]
+
+func subscribe_midi_input_to_field(graph_id: int, node_id: int, field_index: int, message: Variant) -> bool:
+	var command = '"command":{"type":"SubscribeMidiInputToField", "graph_id":%s, "node_id":%s, "field_index":%s, "message":%s}' % [graph_id, node_id, field_index, message]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func get_midi_input_subscriptions() -> Array[Variant]:
+	var response = await _send('{"id":%s,"command":{"type":"GetMidiInputSubscriptions"}}')
+	if not response or response["type"] != "MidiInputSubscriptions":
+		return []
+	
+	return response["subscriptions"]

@@ -5,6 +5,7 @@ use crate::{
         graph::{Graph, GraphId},
         node::{NodeId, NodeKind},
     },
+    io::midi::MIDIDataMessage,
     types::data_type::DataValue,
 };
 
@@ -62,4 +63,15 @@ pub enum Command {
     },
     GetAvailableMidiInputs,
     GetAvailableMidiOutputs,
+    ConnectMidiInput {
+        id: String,
+    },
+    GetConnectedMidiInputs,
+    SubscribeMidiInputToField {
+        graph_id: GraphId,
+        node_id: NodeId,
+        field_index: usize,
+        message: MIDIDataMessage,
+    },
+    GetMidiInputSubscriptions,
 }

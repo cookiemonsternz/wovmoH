@@ -5,6 +5,11 @@ class_name Field extends Control
 var number_field_scene = preload("res://core/value/number_field.tscn")
 var boolean_field_scene = preload("res://core/value/boolean_field.tscn")
 var color_field_scene = preload("res://core/value/color_field.tscn")
+var highlight_panel_scene = preload("res://core/value/highlight_panel_container.tscn")
+
+
+func _ready() -> void:
+	add_child(highlight_panel_scene.instantiate(), false, Node.INTERNAL_MODE_FRONT)
 
 func setup(field_data: Variant, index: int):
 	match field_data["data_type"]:
@@ -31,3 +36,23 @@ func setup(field_data: Variant, index: int):
 			color_field.value = Color(color_arr[0], color_arr[1], color_arr[2], color_arr[3])
 			color_field.index = index
 			add_child(color_field)
+
+
+func _on_mouse_entered() -> void:
+	match State.current_state:
+		State.NORMAL: pass
+		State.SELECTING_FIELD:
+			get_child(0, true).show()
+
+
+func _on_mouse_exited() -> void:
+	match State.current_state:
+		State.NORMAL: pass
+		State.SELECTING_FIELD:
+			get_child(0, true).hide()
+
+
+func _on_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.is_pressed() and event.button_index == MouseButton.MOUSE_BUTTON_LEFT:
+		State.field_selected.emit(self)
+		State.current_state = State.State.NORMAL
