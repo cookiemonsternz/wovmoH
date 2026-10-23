@@ -3,7 +3,13 @@ use serde::Serialize;
 use crate::{
     core::graph::GraphId,
     dto::graph_dto::GraphDto,
-    io::midi::{MidiInputFieldSubscription, MidiInputFieldSubscriptionDTO, PortDescriptor},
+    io::{
+        artnet::ArtnetInputFieldSubscriptionDTO,
+        midi::{
+            MidiInputFieldSubscription, MidiInputFieldSubscriptionDTO,
+            MidiOutputPinSubscriptionDTO, PortDescriptor,
+        },
+    },
 };
 
 #[derive(Debug, Serialize)]
@@ -34,7 +40,22 @@ pub enum ResponseData {
     ConnectedMidiInputs {
         inputs: Vec<PortDescriptor>,
     },
+    ConnectedMidiOutputs {
+        outputs: Vec<PortDescriptor>,
+    },
     MidiInputSubscriptions {
         subscriptions: Vec<MidiInputFieldSubscriptionDTO>,
+    },
+    MidiOutputSubscriptions {
+        subscriptions: Vec<MidiOutputPinSubscriptionDTO>,
+    },
+    MidiInputName {
+        name: String,
+    },
+    MidiOutputName {
+        name: String,
+    },
+    ArtnetInputSubscriptions {
+        subscriptions: Vec<ArtnetInputFieldSubscriptionDTO>,
     },
 }

@@ -57,10 +57,12 @@ func _add_node(node_data: Variant) -> WovmohGraphNode:
 	node.kind_title = node_data["name"]
 	node.title_override = node_data["name_override"]
 	node.position_offset = Vector2(node_data["position"][0], node_data["position"][1])
-	for output_data in node_data["outputs"]:
-		node.add_output(output_data)
-	
 	var i = 0
+	for output_data in node_data["outputs"]:
+		node.add_output(output_data, i)
+		i += 1
+	
+	i = 0
 	for input_data in node_data["inputs"]:
 		node.add_input(input_data, i)
 		i += 1

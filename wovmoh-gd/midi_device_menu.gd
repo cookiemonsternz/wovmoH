@@ -30,6 +30,7 @@ func _on_folding_changed(is_folded: bool) -> void:
 				input_checkbox.toggled.connect(connect_input.bind(input_device["id"]))
 				input_container.add_child(input_checkbox)
 				var output_checkbox = CheckBox.new()
+				output_checkbox.toggled.connect(connect_output.bind(outputs[output_index]["id"]))
 				output_container.add_child(output_checkbox)
 
 func are_same_device(input_device: Variant, output_device: Variant) -> bool:
@@ -41,3 +42,7 @@ func are_same_device(input_device: Variant, output_device: Variant) -> bool:
 func connect_input(toggled_on: bool, id: String,):
 	if !toggled_on: return
 	Backend.connect_midi_input(id.json_escape())
+
+func connect_output(toggled_on: bool, id: String):
+	if !toggled_on: return
+	Backend.connect_midi_output(id.json_escape())

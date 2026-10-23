@@ -3,7 +3,7 @@ use std::collections::{HashMap, VecDeque};
 use crate::{
     core::{input_field::*, node::*, output_pin::*},
     dto::{connection_dto::ConnectionDto, graph_dto::GraphDto},
-    io::midi::MIDIDataMessage,
+    io::midi::MidiDataMessage,
     types::data_type::DataValue,
 };
 
@@ -198,8 +198,16 @@ impl Graph {
         self.inputs[input_field_id].parent
     }
 
+    pub fn node_for_output(&self, output_pin_id: OutputId) -> NodeId {
+        self.outputs[output_pin_id].parent
+    }
+
     pub fn input_index_for_input(&self, input_field_id: InputId) -> usize {
         self.inputs[input_field_id].index
+    }
+
+    pub fn output_index_for_output(&self, output_pin_id: OutputId) -> usize {
+        self.outputs[output_pin_id].index
     }
 
     pub fn input_id_for(&self, node_id: NodeId, field_index: usize) -> usize {
@@ -264,6 +272,10 @@ impl Graph {
         }
 
         result
+    }
+
+    pub fn get_output(&self, output_id: usize) -> &OutputPin {
+        &self.outputs[output_id]
     }
 
     pub fn output_id_for(&self, node_id: NodeId, pin_index: usize) -> usize {
@@ -442,10 +454,10 @@ impl Graph {
         }
     }
 
-    pub fn update_midi_input(&mut self, field_index: usize, message: &MIDIDataMessage) {
+    pub fn update_midi_input(&mut self, field_index: usize, message: &MidiDataMessage) {
         let input = self.inputs.get_mut(field_index).unwrap();
         match message {
-            MIDIDataMessage::NoteOff { note, velocity } => match input.value {
+            MidiDataMessage::NoteOff { note, velocity } => match input.value {
                 DataValue::Number(_) => input.value = DataValue::Number(velocity.unwrap() as f64),
                 DataValue::Boolean(_) => input.value = DataValue::Boolean(false),
                 DataValue::Color(color) => eprintln!(
@@ -464,7 +476,7 @@ impl Graph {
                     velocity.unwrap()
                 ),
             },
-            MIDIDataMessage::NoteOn { note, velocity } => match input.value {
+            MidiDataMessage::NoteOn { note, velocity } => match input.value {
                 DataValue::Number(_) => input.value = DataValue::Number(velocity.unwrap() as f64),
                 DataValue::Boolean(_) => input.value = DataValue::Boolean(true),
                 DataValue::Color(color) => eprintln!(
@@ -483,7 +495,7 @@ impl Graph {
                     velocity.unwrap()
                 ),
             },
-            MIDIDataMessage::PolyphonicAftertouch { note, pressure } => match input.value {
+            MidiDataMessage::PolyphonicAftertouch { note, pressure } => match input.value {
                 DataValue::Number(_) => input.value = DataValue::Number(pressure.unwrap() as f64),
                 DataValue::Boolean(_) => {
                     input.value =
@@ -505,7 +517,7 @@ impl Graph {
                     pressure.unwrap()
                 ),
             },
-            MIDIDataMessage::ControlChange { controller, data } => match input.value {
+            MidiDataMessage::ControlChange { controller, data } => match input.value {
                 DataValue::Number(_) => input.value = DataValue::Number(data.unwrap() as f64),
                 DataValue::Boolean(_) => {
                     input.value = DataValue::Boolean(if data.unwrap() < 128 { false } else { true })
@@ -526,9 +538,9 @@ impl Graph {
                     data.unwrap()
                 ),
             },
-            MIDIDataMessage::ProgramChange { program } => todo!(),
-            MIDIDataMessage::ChannelAftertouch { pressure } => todo!(),
-            MIDIDataMessage::PitchWheel { pitch } => match input.value {
+            MidiDataMessage::ProgramChange { program } => todo!(),
+            MidiDataMessage::ChannelAftertouch { pressure } => todo!(),
+            MidiDataMessage::PitchWheel { pitch } => match input.value {
                 DataValue::Number(_) => input.value = DataValue::Number(pitch.unwrap() as f64),
                 DataValue::Boolean(_) => {
                     input.value =
@@ -547,7 +559,21 @@ impl Graph {
                     pitch.unwrap(),
                 ),
             },
-            MIDIDataMessage::SysEx => todo!(),
+            MidiDataMessage::SysEx => todo!(),
+        }
+    }
+
+    pub fn update_artnet_input(&mut self, field_index: usize, value: u8) {
+        let input = self.inputs.get_mut(field_index).unwrap();
+
+        match input.value {
+            DataValue::Number(_) => {
+                input.value = DataValue::Number(value as f64);
+            }
+            DataValue::Boolean(_) => input.value = DataValue::Boolean(value < 128),
+            DataValue::Color(color) => todo!(),
+            DataValue::Vector3(vec3) => todo!(),
+            DataValue::Point3(vec3) => todo!(),
         }
     }
 }

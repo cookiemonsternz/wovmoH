@@ -1,6 +1,6 @@
 extends VBoxContainer
 
-var element_scene = preload("res://subscription_table_element.tscn")
+var element_scene = preload("res://input_subscription_table_element.tscn")
 
 func _on_midi_config_visibility_changed() -> void:
 	if not Backend.is_connected_to_host(): return
@@ -11,6 +11,6 @@ func _on_midi_config_visibility_changed() -> void:
 	var subscriptions = await Backend.get_midi_input_subscriptions()
 	
 	for subscription in subscriptions:
-		var element: SubscriptionTableElement = element_scene.instantiate()
+		var element: InputSubscriptionTableElement = element_scene.instantiate()
 		element.setup(subscription)
 		add_child(element)

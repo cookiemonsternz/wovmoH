@@ -12,6 +12,7 @@ class_name WovmohGraphNode extends GraphNode
 		_update_title()
 
 var field_scene = preload("res://core/value/field.tscn")
+var pin_scene = preload("res://core/pin.tscn")
 
 var node_id: int
 var num_slots = 0
@@ -31,13 +32,13 @@ func add_input(data: Variant, index: int):
 	set_slot(num_slots, true, field_data_type, Data.PORT_COLORS[field_data_type], false, 0, Color.BLACK)
 	num_slots += 1
 
-func add_output(data: Variant):
-	var label := Label.new()
-	label.text = data["name"]
-	add_child(label)
+func add_output(data: Variant, index: int):
+	var pin: Pin = pin_scene.instantiate()
+	pin.setup(data, index)
+	add_child(pin)
 	
-	var field_data_type = Data.get_field_type_from_data(data)
-	set_slot(num_slots, false, 0, Color.BLACK, true, field_data_type, Data.PORT_COLORS[field_data_type])
+	var pin_data_type = Data.get_field_type_from_data(data)
+	set_slot(num_slots, false, 0, Color.BLACK, true, pin_data_type, Data.PORT_COLORS[pin_data_type])
 	num_slots += 1
 
 

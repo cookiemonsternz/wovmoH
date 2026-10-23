@@ -147,12 +147,27 @@ func connect_midi_input(id: String) -> bool:
 	
 	return true
 
+func connect_midi_output(id: String) -> bool:
+	var command = '"command":{"type":"ConnectMidiOutput", "id":"%s"}' % id
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
 func get_connected_midi_inputs() -> Array[Variant]:
 	var response = await _send('{"id":%s,"command":{"type":"GetConnectedMidiInputs"}}')
 	if not response or response["type"] != "ConnectedMidiInputs":
 		return []
 	
 	return response["inputs"]
+
+func get_connected_midi_outputs() -> Array[Variant]:
+	var response = await _send('{"id":%s,"command":{"type":"GetConnectedMidiOutputs"}}')
+	if not response or response["type"] != "ConnectedMidiOutputs":
+		return []
+	
+	return response["outputs"]
 
 func subscribe_midi_input_to_field(graph_id: int, node_id: int, field_index: int, message: Variant) -> bool:
 	var command = '"command":{"type":"SubscribeMidiInputToField", "graph_id":%s, "node_id":%s, "field_index":%s, "message":%s}' % [graph_id, node_id, field_index, message]
@@ -171,6 +186,68 @@ func get_midi_input_subscriptions() -> Array[Variant]:
 
 func unsubscribe_midi_input_from_field(graph_id: int, node_id: int, field_index: int, message: Variant):
 	var command = '"command":{"type":"UnsubscribeMidiInputFromField", "graph_id":%s, "node_id":%s, "field_index":%s, "message":%s}' % [graph_id, node_id, field_index, message]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func subscribe_midi_output_to_pin(graph_id: int, node_id: int, pin_index: int, midi_output: String, message: Variant) -> bool:
+	var command = '"command":{"type":"SubscribeMidiOutputToPin", "graph_id":%s, "node_id":%s, "pin_index":%s, "midi_output": "%s", "message":%s}' % [graph_id, node_id, pin_index, midi_output, message]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func get_midi_output_subscriptions() -> Array[Variant]:
+	var response = await _send('{"id":%s,"command":{"type":"GetMidiOutputSubscriptions"}}')
+	if not response or response["type"] != "MidiOutputSubscriptions":
+		return []
+	
+	return response["subscriptions"]
+
+func unsubscribe_midi_output_from_pin(graph_id: int, node_id: int, pin_index: int, midi_output: String, message: Variant) -> bool:
+	var command = '"command":{"type":"UnsubscribeMidiOutputFromPin", "graph_id":%s, "node_id":%s, "pin_index":%s, "midi_output": "%s", "message":%s}' % [graph_id, node_id, pin_index, midi_output, message]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func get_midi_input_name_from_id(id: String) -> String:
+	var command = '"command":{"type":"GetMidiInputNameFromId", "id":"%s"}' % [id]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "MidiInputName":
+		return ""
+	
+	return response["name"]
+
+func get_midi_output_name_from_id(id: String) -> String:
+	var command = '"command":{"type":"GetMidiOutputNameFromId", "id":"%s"}' % [id]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "MidiOutputName":
+		return ""
+	
+	return response["name"]
+
+func get_artnet_input_subscriptions() -> Array[Variant]:
+	var response = await _send('{"id":%s,"command":{"type":"GetArtnetInputSubscriptions"}}')
+	if not response or response["type"] != "ArtnetInputSubscriptions":
+		return []
+	
+	return response["subscriptions"]
+
+func subscribe_artnet_input_to_field(graph_id: int, node_id: int, field_index: int, channel: int) -> bool:
+	var command = '"command":{"type":"SubscribeArtnetInputToField", "graph_id":%s, "node_id":%s, "field_index":%s, "channel":%s}' % [graph_id, node_id, field_index, channel]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func unsubscribe_artnet_input_from_field(graph_id: int, node_id: int, field_index: int, channel: int):
+	var command = '"command":{"type":"UnsubscribeArtnetInputFromField", "graph_id":%s, "node_id":%s, "field_index":%s, "channel":%s}' % [graph_id, node_id, field_index, channel]
 	var response = await _send('{"id":%s,' + command + "}")
 	if not response or response["type"] != "Acknowledge":
 		return false

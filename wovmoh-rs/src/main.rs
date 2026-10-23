@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use crate::{app::App, io::midi::MidiManager, transport::tcp};
 
@@ -14,10 +17,19 @@ pub mod types;
 fn main() {
     let app = Arc::new(Mutex::new(App::new()));
     tcp::run(app.clone());
-    loop {
-        {
-            let mut app_guard = app.lock().expect("App mutex poisoned");
-            app_guard.process_midi_events();
+
+    let timer = timer::Timer::new();
+    let _guard = timer.schedule_repeating(chrono::Duration::milliseconds(16), move || {
+        // println!("Timer Fired");
+        match app.try_lock() {
+            Ok(mut app_guard) => {
+                app_guard.event_loop();
+            }
+            Err(_) => {
+                println!("App mutex is locked")
+            }
         }
-    }
+    });
+
+    std::thread::park();
 }

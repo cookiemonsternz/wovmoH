@@ -43,6 +43,8 @@ func _on_mouse_entered() -> void:
 		State.NORMAL: pass
 		State.SELECTING_FIELD:
 			get_child(0, true).show()
+		State.ARTNET_SELECTING_FIELD:
+			get_child(0, true).show()
 
 
 func _on_mouse_exited() -> void:
@@ -50,11 +52,22 @@ func _on_mouse_exited() -> void:
 		State.NORMAL: pass
 		State.SELECTING_FIELD:
 			get_child(0, true).hide()
+		State.ARTNET_SELECTING_FIELD:
+			get_child(0, true).hide()
 
 
 func _on_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.is_pressed() and event.button_index == MouseButton.MOUSE_BUTTON_LEFT:
+	if event is InputEventMouseButton and event.is_pressed() and event.button_index == MouseButton.MOUSE_BUTTON_LEFT and State.current_state == State.SELECTING_FIELD:
 		State.field_selected.emit(self)
+		State.current_state = State.NORMAL
+		get_child(0, true).hide()
+		get_child(0).mouse_filter = MOUSE_FILTER_IGNORE
+		get_child(0).mouse_behavior_recursive = MOUSE_BEHAVIOR_DISABLED
+		get_child(0).connected = true
+		var node: WovmohGraphNode = get_parent()
+		node.set_slot_enabled_left(node.get_input_port_slot(get_child(0).index), false)
+	if event is InputEventMouseButton and event.is_pressed() and event.button_index == MouseButton.MOUSE_BUTTON_LEFT and State.current_state == State.ARTNET_SELECTING_FIELD:
+		State.artnet_field_selected.emit(self)
 		State.current_state = State.NORMAL
 		get_child(0, true).hide()
 		get_child(0).mouse_filter = MOUSE_FILTER_IGNORE

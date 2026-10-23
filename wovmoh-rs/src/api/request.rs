@@ -5,7 +5,7 @@ use crate::{
         graph::{Graph, GraphId},
         node::{NodeId, NodeKind},
     },
-    io::midi::MIDIDataMessage,
+    io::midi::MidiDataMessage,
     types::data_type::DataValue,
 };
 
@@ -66,18 +66,57 @@ pub enum Command {
     ConnectMidiInput {
         id: String,
     },
+    ConnectMidiOutput {
+        id: String,
+    },
     GetConnectedMidiInputs,
+    GetConnectedMidiOutputs,
     SubscribeMidiInputToField {
         graph_id: GraphId,
         node_id: NodeId,
         field_index: usize,
-        message: MIDIDataMessage,
+        message: MidiDataMessage,
     },
     GetMidiInputSubscriptions,
     UnsubscribeMidiInputFromField {
         graph_id: GraphId,
         node_id: NodeId,
         field_index: usize,
-        message: MIDIDataMessage,
+        message: MidiDataMessage,
     },
+    SubscribeMidiOutputToPin {
+        graph_id: GraphId,
+        node_id: NodeId,
+        pin_index: usize,
+        midi_output: String,
+        message: MidiDataMessage,
+    },
+    GetMidiOutputSubscriptions,
+    UnsubscribeMidiOutputFromPin {
+        graph_id: GraphId,
+        node_id: NodeId,
+        pin_index: usize,
+        midi_output: String,
+        message: MidiDataMessage,
+    },
+    GetMidiInputNameFromId {
+        id: String,
+    },
+    GetMidiOutputNameFromId {
+        id: String,
+    },
+    ArtNetPoll,
+    SubscribeArtnetInputToField {
+        graph_id: GraphId,
+        node_id: NodeId,
+        field_index: usize,
+        channel: usize,
+    },
+    UnsubscribeArtnetInputFromField {
+        graph_id: GraphId,
+        node_id: NodeId,
+        field_index: usize,
+        channel: usize,
+    },
+    GetArtnetInputSubscriptions,
 }

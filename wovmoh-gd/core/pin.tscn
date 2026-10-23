@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://cjvjjga6mdomw"]
+
+[ext_resource type="Script" uid="uid://dnaychgi024x0" path="res://core/pin.gd" id="1_abvce"]
+
+[node name="Pin" type="Label" unique_id=1558900944]
+mouse_filter = 0
+script = ExtResource("1_abvce")
+
+[connection signal="gui_input" from="." to="." method="_on_gui_input"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
