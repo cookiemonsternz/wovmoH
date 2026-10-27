@@ -25,13 +25,15 @@ impl App {
         let (midi_tx, midi_rx) = mpsc::channel::<MidiEvent>();
         let (artnet_tx, artnet_rx) = mpsc::channel::<WovmohArtCommand>();
 
-        let app = App {
+        let mut app = App {
             graphs: GraphManager::new(),
             midi: MidiManager::new(midi_tx),
             artnet: ArtnetManager::new(artnet_tx),
             midi_rx,
             artnet_rx,
         };
+
+        app.graphs.add_graph();
 
         MidiManager::print_available_input_ports();
         MidiManager::print_available_output_ports();
@@ -62,5 +64,6 @@ impl App {
         }
 
         self.midi.send_output_events(&self.graphs);
+        self.artnet.send_output_events(&self.graphs);
     }
 }

@@ -17,6 +17,7 @@ fn constant_color_process(inputs: Vec<DataValue>, outputs: &mut Vec<&mut DataVal
 
 pub static CONSTANT_COLOR_DESCRIPTOR: NodeDescriptor = NodeDescriptor {
     name: "Constant Color",
+    category: "Constant",
     inputs: &[InputDesc {
         name: "Color",
         data_type: DataType::Color,

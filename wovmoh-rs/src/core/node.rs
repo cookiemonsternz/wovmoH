@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use crate::core::graph::Graph;
 use crate::dto::input_field_dto::InputFieldDto;
 use crate::dto::node_dto::NodeDto;
 use crate::dto::output_pin_dto::OutputPinDto;
@@ -61,6 +60,10 @@ pub enum NodeKind {
     ConstantBoolean,
     ConstantColor,
     AddNumbers,
+    MultiplyNumbers,
+    ExpNumbers,
+    LogNumbers,
+    Branch,
 }
 
 impl NodeKind {
@@ -70,12 +73,17 @@ impl NodeKind {
             NodeKind::ConstantBoolean => &nodes::constants::boolean::CONSTANT_BOOLEAN_DESCRIPTOR,
             NodeKind::ConstantColor => &nodes::constants::color::CONSTANT_COLOR_DESCRIPTOR,
             NodeKind::AddNumbers => &nodes::maths::add::ADD_NUMBERS_DESCRIPTOR,
+            NodeKind::MultiplyNumbers => &nodes::maths::multiply::MULTIPLY_NUMBERS_DESCRIPTOR,
+            NodeKind::ExpNumbers => &nodes::maths::exp::EXP_NUMBERS_DESCRIPTOR,
+            NodeKind::LogNumbers => &nodes::maths::log::LOG_NUMBERS_DESCRIPTOR,
+            NodeKind::Branch => &nodes::flow::branch::BRANCH_DESCRIPTOR,
         }
     }
 }
 
 pub struct NodeDescriptor {
     pub name: &'static str,
+    pub category: &'static str,
     pub inputs: &'static [InputDesc],
     pub outputs: &'static [OutputDesc],
     pub process: fn(Vec<DataValue>, &mut Vec<&mut DataValue>),
@@ -108,6 +116,13 @@ pub struct OutputDesc {
 pub struct NodeUIState {
     pub position: (f64, f64),
     pub name_override: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct NodeDescriptorDTO {
+    pub kind: &'static str,
+    pub name: &'static str,
+    pub category: &'static str,
 }
 
 // use crate::core::graph::Graph;

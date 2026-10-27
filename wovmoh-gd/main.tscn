@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://cxu2d232hk851" path="res://icon.svg" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://cpywup1v5ara5" path="res://main.gd" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://sipkhb7nw5v" path="res://wovmoh_graph_edit.gd" id="1_ig7tw"]
+[ext_resource type="Theme" uid="uid://bslyqb3ebf084" path="res://main_theme.tres" id="2_2cqfq"]
 [ext_resource type="Texture2D" uid="uid://bb8r4dedmrag3" path="res://addons/at-icons/node/pipette.svg" id="4_1bvp3"]
 [ext_resource type="Script" uid="uid://cx134ygjinuul" path="res://create_midi_input_binding_panel_container.gd" id="4_272bh"]
 [ext_resource type="Script" uid="uid://kdkke7l33dsl" path="res://bound_inputs.gd" id="5_lquwl"]
@@ -13,6 +14,107 @@
 [ext_resource type="Script" uid="uid://ci33nx17cn1vv" path="res://bound_outputs.gd" id="9_4c57u"]
 [ext_resource type="Script" uid="uid://dkqnhjpv14rbw" path="res://bound_artnet_inputs.gd" id="11_dg77c"]
 [ext_resource type="Script" uid="uid://gp0h38crrpg6" path="res://create_artnet_input_binding_panel_container.gd" id="11_ycdy4"]
+[ext_resource type="Script" uid="uid://bolr7qaqa8avp" path="res://create_artnet_output_binding_panel_container_2.gd" id="12_w48qg"]
+[ext_resource type="Script" uid="uid://r3qbdue4owb5" path="res://bound_artnet_outputs.gd" id="14_vivmo"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dlfm4"]
+bg_color = Color(0.09803922, 0.09019608, 0.14117648, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2cqfq"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.12156863, 0.11372549, 0.18039216, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yaehf"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.12156863, 0.11372549, 0.18039216, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_074og"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.12156863, 0.11372549, 0.18039216, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cegan"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.12156863, 0.11372549, 0.18039216, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_82xsv"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.12156863, 0.11372549, 0.18039216, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_getpj"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.12156863, 0.11372549, 0.18039216, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ryguw"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.12156863, 0.11372549, 0.18039216, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d13ii"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.12156863, 0.11372549, 0.18039216, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1s724"]
 bg_color = Color(0, 0, 0, 1)
@@ -36,6 +138,15 @@ grow_vertical = 2
 mouse_filter = 1
 script = ExtResource("1_h2yge")
 
+[node name="Panel" type="Panel" parent="." unique_id=289962618]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dlfm4")
+
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=725711878]
 layout_mode = 1
 anchors_preset = 15
@@ -43,12 +154,13 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 0
 
 [node name="TopBar" type="PanelContainer" parent="VBoxContainer" unique_id=1183425445]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 mouse_filter = 1
+theme = ExtResource("2_2cqfq")
 
 [node name="LeftItems" type="HBoxContainer" parent="VBoxContainer/TopBar" unique_id=817289506]
 layout_mode = 2
@@ -154,7 +266,6 @@ text = "Perform"
 flat = true
 
 [node name="GraphView" type="Control" parent="VBoxContainer" unique_id=456806078]
-visible = false
 layout_mode = 2
 size_flags_vertical = 3
 
@@ -166,19 +277,20 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 2
-theme_override_constants/minimum_grab_thickness = 4
-split_offsets = PackedInt32Array(-360)
-split_offset = -360
+split_offsets = PackedInt32Array(-342)
+split_offset = -342
 
 [node name="WovmohGraphEdit" type="GraphEdit" parent="VBoxContainer/GraphView/HSplitContainer" unique_id=1802487965]
 layout_mode = 2
 size_flags_horizontal = 3
+scroll_offset = Vector2(-360, -180)
 right_disconnects = true
+minimap_enabled = false
 script = ExtResource("1_ig7tw")
 metadata/_custom_type_script = "uid://sipkhb7nw5v"
 
 [node name="SidePanel" type="Control" parent="VBoxContainer/GraphView/HSplitContainer" unique_id=1802487605]
+visible = false
 layout_mode = 2
 
 [node name="Panel" type="Panel" parent="VBoxContainer/GraphView/HSplitContainer/SidePanel" unique_id=1650105395]
@@ -263,6 +375,7 @@ layout_mode = 2
 text = "SELECTING OUTPUT"
 
 [node name="ManageMenu" type="TabContainer" parent="VBoxContainer" unique_id=28540461]
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 12
@@ -289,6 +402,7 @@ theme_override_constants/separation = 8
 
 [node name="CreateMidiInputBindingPanelContainer" type="PanelContainer" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Panels" unique_id=477302043 node_paths=PackedStringArray("message_type_button", "note_controller_line_edit", "main")]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_2cqfq")
 script = ExtResource("4_272bh")
 message_type_button = NodePath("MarginContainer/VBoxContainer/MessageType/OptionButton")
 note_controller_line_edit = NodePath("MarginContainer/VBoxContainer/Note_Controller/LineEdit")
@@ -357,6 +471,7 @@ icon = ExtResource("4_1bvp3")
 
 [node name="CreateMidiOutputBindingPanelContainer" type="PanelContainer" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Panels" unique_id=1384469130 node_paths=PackedStringArray("midi_output_button", "message_type_button", "note_controller_line_edit", "main")]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_yaehf")
 script = ExtResource("6_kek77")
 midi_output_button = NodePath("MarginContainer/VBoxContainer/MidiOutput/OptionButton")
 message_type_button = NodePath("MarginContainer/VBoxContainer/MessageType/OptionButton")
@@ -443,6 +558,7 @@ layout_mode = 2
 
 [node name="BoundMidiInputs" type="PanelContainer" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Tables" unique_id=175051669]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_074og")
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Tables/BoundMidiInputs" unique_id=967677159]
 layout_mode = 2
@@ -471,6 +587,7 @@ layout_mode = 2
 
 [node name="BoundMidiOutputs" type="PanelContainer" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Tables" unique_id=1077046640]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cegan")
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Tables/BoundMidiOutputs" unique_id=728810222]
 layout_mode = 2
@@ -512,6 +629,7 @@ layout_mode = 2
 
 [node name="CreateArtnetInputBindingPanelContainer" type="PanelContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels" unique_id=518417433 node_paths=PackedStringArray("channel_line_edit", "main")]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_82xsv")
 script = ExtResource("11_ycdy4")
 channel_line_edit = NodePath("MarginContainer/VBoxContainer/Note_Controller/LineEdit")
 main = NodePath("../../../../../..")
@@ -556,33 +674,107 @@ layout_mode = 2
 text = "Create"
 icon = ExtResource("4_1bvp3")
 
-[node name="Tables" type="VBoxContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer" unique_id=860213478]
+[node name="CreateArtnetOutputBindingPanelContainer2" type="PanelContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels" unique_id=997422028 node_paths=PackedStringArray("channel_line_edit", "main")]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_getpj")
+script = ExtResource("12_w48qg")
+channel_line_edit = NodePath("MarginContainer/VBoxContainer/Note_Controller/LineEdit")
+main = NodePath("../../../../../..")
 
-[node name="BoundMidiInputs" type="PanelContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables" unique_id=830407559]
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundMidiInputs" unique_id=1606995542]
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetOutputBindingPanelContainer2" unique_id=1911217609]
 layout_mode = 2
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundMidiInputs/MarginContainer" unique_id=916164507]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetOutputBindingPanelContainer2/MarginContainer" unique_id=1658974263]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundMidiInputs/MarginContainer/VBoxContainer" unique_id=543071434]
+[node name="Label" type="Label" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetOutputBindingPanelContainer2/MarginContainer/VBoxContainer" unique_id=699484417]
 layout_mode = 2
-text = "MIDI Input Bindings"
+text = "Artnet Output Binding"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundMidiInputs/MarginContainer/VBoxContainer" unique_id=1471793484]
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetOutputBindingPanelContainer2/MarginContainer/VBoxContainer" unique_id=44067031]
 layout_mode = 2
 
-[node name="BoundArtnetInputs" type="VBoxContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundMidiInputs/MarginContainer/VBoxContainer" unique_id=2049689835]
+[node name="Note_Controller" type="HBoxContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetOutputBindingPanelContainer2/MarginContainer/VBoxContainer" unique_id=1807218600]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetOutputBindingPanelContainer2/MarginContainer/VBoxContainer/Note_Controller" unique_id=239346388]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Channel : "
+
+[node name="LineEdit" type="LineEdit" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetOutputBindingPanelContainer2/MarginContainer/VBoxContainer/Note_Controller" unique_id=938155250]
+layout_mode = 2
+size_flags_horizontal = 3
+virtual_keyboard_type = 2
+
+[node name="CreateButton" type="HBoxContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetOutputBindingPanelContainer2/MarginContainer/VBoxContainer" unique_id=1725267141]
+layout_mode = 2
+alignment = 1
+
+[node name="Button" type="Button" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetOutputBindingPanelContainer2/MarginContainer/VBoxContainer/CreateButton" unique_id=1266838105]
+layout_mode = 2
+text = "Create"
+icon = ExtResource("4_1bvp3")
+
+[node name="Tables" type="VBoxContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer" unique_id=860213478]
+layout_mode = 2
+
+[node name="BoundArtnetInputs" type="PanelContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables" unique_id=830407559]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ryguw")
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetInputs" unique_id=1606995542]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetInputs/MarginContainer" unique_id=916164507]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetInputs/MarginContainer/VBoxContainer" unique_id=543071434]
+layout_mode = 2
+text = "Artnet Input Bindings"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetInputs/MarginContainer/VBoxContainer" unique_id=1471793484]
+layout_mode = 2
+
+[node name="BoundArtnetInputs" type="VBoxContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetInputs/MarginContainer/VBoxContainer" unique_id=2049689835]
 layout_mode = 2
 script = ExtResource("11_dg77c")
+
+[node name="BoundArtnetOutputs" type="PanelContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables" unique_id=1372431911]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_d13ii")
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetOutputs" unique_id=1936014281]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetOutputs/MarginContainer" unique_id=1895514175]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetOutputs/MarginContainer/VBoxContainer" unique_id=1473647472]
+layout_mode = 2
+text = "Artnet Output Bindings"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetOutputs/MarginContainer/VBoxContainer" unique_id=79923233]
+layout_mode = 2
+
+[node name="BoundArtnetOutputs" type="VBoxContainer" parent="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetOutputs/MarginContainer/VBoxContainer" unique_id=952709566]
+layout_mode = 2
+script = ExtResource("14_vivmo")
 
 [node name="RightItems" type="HBoxContainer" parent="." unique_id=677717537]
 layout_mode = 1
@@ -669,6 +861,8 @@ layout_mode = 2
 [connection signal="visibility_changed" from="VBoxContainer/ManageMenu/Midi Config" to="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Tables/BoundMidiOutputs/MarginContainer/VBoxContainer/BoundOutputs" method="_on_midi_config_visibility_changed"]
 [connection signal="pressed" from="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Panels/CreateMidiInputBindingPanelContainer/MarginContainer/VBoxContainer/CreateButton/Button" to="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Panels/CreateMidiInputBindingPanelContainer" method="_on_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Panels/CreateMidiOutputBindingPanelContainer/MarginContainer/VBoxContainer/CreateButton/Button" to="VBoxContainer/ManageMenu/Midi Config/HSplitContainer/Panels/CreateMidiOutputBindingPanelContainer" method="_on_button_pressed"]
-[connection signal="visibility_changed" from="VBoxContainer/ManageMenu/Artnet Config" to="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundMidiInputs/MarginContainer/VBoxContainer/BoundArtnetInputs" method="_on_midi_config_visibility_changed"]
+[connection signal="visibility_changed" from="VBoxContainer/ManageMenu/Artnet Config" to="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetInputs/MarginContainer/VBoxContainer/BoundArtnetInputs" method="_on_midi_config_visibility_changed"]
+[connection signal="visibility_changed" from="VBoxContainer/ManageMenu/Artnet Config" to="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Tables/BoundArtnetOutputs/MarginContainer/VBoxContainer/BoundArtnetOutputs" method="_on_midi_config_visibility_changed"]
 [connection signal="pressed" from="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetInputBindingPanelContainer/MarginContainer/VBoxContainer/CreateButton/Button" to="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetInputBindingPanelContainer" method="_on_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetOutputBindingPanelContainer2/MarginContainer/VBoxContainer/CreateButton/Button" to="VBoxContainer/ManageMenu/Artnet Config/HSplitContainer/Panels/CreateArtnetOutputBindingPanelContainer2" method="_on_button_pressed"]
 [connection signal="folding_changed" from="RightItems/MidiDeviceMenu" to="RightItems/MidiDeviceMenu" method="_on_folding_changed"]

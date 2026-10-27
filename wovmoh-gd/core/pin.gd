@@ -20,6 +20,8 @@ func _on_mouse_entered() -> void:
 		State.NORMAL: pass
 		State.SELECTING_PIN:
 			get_child(0, true).show()
+		State.ARTNET_SELECTING_PIN:
+			get_child(0, true).show()
 
 
 func _on_mouse_exited() -> void:
@@ -27,10 +29,21 @@ func _on_mouse_exited() -> void:
 		State.NORMAL: pass
 		State.SELECTING_PIN:
 			get_child(0, true).hide()
+		State.ARTNET_SELECTING_PIN:
+			get_child(0, true).hide()
 
 func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.is_pressed() and event.button_index == MouseButton.MOUSE_BUTTON_LEFT and State.current_state == State.SELECTING_PIN:
 		State.pin_selected.emit(self)
+		State.current_state = State.NORMAL
+		get_child(0, true).hide()
+		
+		var node: WovmohGraphNode = get_parent()
+		node.set_slot_enabled_right(node.get_output_port_slot(index), false)
+		
+		get_child(1, true).show()
+	if event is InputEventMouseButton and event.is_pressed() and event.button_index == MouseButton.MOUSE_BUTTON_LEFT and State.current_state == State.ARTNET_SELECTING_PIN:
+		State.artnet_pin_selected.emit(self)
 		State.current_state = State.NORMAL
 		get_child(0, true).hide()
 		

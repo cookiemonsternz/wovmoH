@@ -4,9 +4,11 @@ use std::sync::{Arc, Mutex};
 
 use strum::IntoEnumIterator;
 
-use crate::core::graph;
-use crate::core::node::{NodeKind, NodeUIState};
-use crate::io::artnet::{ArtnetInputFieldSubscription, ArtnetInputFieldSubscriptionDTO};
+use crate::core::node::{NodeDescriptorDTO, NodeKind, NodeUIState};
+use crate::io::artnet::{
+    ArtnetInputFieldSubscription, ArtnetInputFieldSubscriptionDTO, ArtnetOutputPinSubscription,
+    ArtnetOutputPinSubscriptionDTO,
+};
 use crate::io::midi::{
     MidiInputFieldSubscription, MidiInputFieldSubscriptionDTO, MidiManager,
     MidiOutputPinSubscription, MidiOutputPinSubscriptionDTO,
@@ -59,9 +61,22 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             let graph = app.lock().unwrap().graphs.get_graph(id).to_dto();
             write(ResponseData::GraphData { graph }, request, stream);
         }
-        Command::GetNodeKinds => {
-            let kinds: Vec<&'static str> = NodeKind::iter().map(|x| x.into()).collect();
-            write(ResponseData::NodeKinds { kinds }, request, stream);
+        Command::GetNodeDescriptors => {
+            let descriptors: Vec<NodeDescriptorDTO> = NodeKind::iter()
+                .map(|x| -> NodeDescriptorDTO {
+                    NodeDescriptorDTO {
+                        kind: x.into(),
+                        name: x.descriptor().name,
+                        category: x.descriptor().category,
+                    }
+                })
+                .collect();
+
+            write(
+                ResponseData::NodeDescriptors { descriptors },
+                request,
+                stream,
+            );
         }
         Command::SetInputFieldValue {
             graph_id,
@@ -389,6 +404,62 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
 
             write(
                 ResponseData::ArtnetInputSubscriptions { subscriptions },
+                request,
+                stream,
+            );
+        }
+        Command::SubscribeArtnetOutputToPin {
+            graph_id,
+            node_id,
+            pin_index,
+            channel,
+        } => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let graph = app.graphs.get_graph_mut(graph_id);
+            let pin_id = graph.output_id_for(node_id, pin_index);
+            app.artnet.subscribe_output(ArtnetOutputPinSubscription {
+                graph_id,
+                pin: pin_id,
+                channel: channel,
+            });
+            write(ResponseData::Acknowledge, request, stream);
+        }
+        Command::UnsubscribeArtnetOutputFromPin {
+            graph_id,
+            node_id,
+            pin_index,
+            channel,
+        } => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let graph = app.graphs.get_graph_mut(graph_id);
+            let pin_id = graph.output_id_for(node_id, pin_index);
+            app.artnet.unsubscribe_output(ArtnetOutputPinSubscription {
+                graph_id,
+                pin: pin_id,
+                channel: channel,
+            });
+            write(ResponseData::Acknowledge, request, stream);
+        }
+        Command::GetArtnetOutputSubscriptions => {
+            let mut lock = app.lock();
+            let app = lock.as_mut().unwrap();
+            let mut subscriptions: Vec<ArtnetOutputPinSubscriptionDTO> = Vec::new();
+            for subscription in app.artnet.output_subscriptions.read().unwrap().iter() {
+                let graph = app.graphs.get_graph(subscription.graph_id);
+                let node = graph.node_for_input(subscription.pin);
+                let index = graph.output_index_for_output(subscription.pin);
+                subscriptions.push(ArtnetOutputPinSubscriptionDTO {
+                    graph_id: subscription.graph_id,
+                    node_id: node,
+                    pin_index: index,
+                    channel: subscription.channel,
+                });
+            }
+
+            write(
+                ResponseData::ArtnetOutputSubscriptions { subscriptions },
                 request,
                 stream,
             );

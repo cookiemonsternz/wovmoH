@@ -26,7 +26,7 @@ pub enum Command {
     GetGraph {
         id: GraphId,
     },
-    GetNodeKinds,
+    GetNodeDescriptors,
     SetInputFieldValue {
         graph_id: GraphId,
         node_id: NodeId,
@@ -119,4 +119,17 @@ pub enum Command {
         channel: usize,
     },
     GetArtnetInputSubscriptions,
+    SubscribeArtnetOutputToPin {
+        graph_id: GraphId,
+        node_id: NodeId,
+        pin_index: usize,
+        channel: usize,
+    },
+    UnsubscribeArtnetOutputFromPin {
+        graph_id: GraphId,
+        node_id: NodeId,
+        pin_index: usize,
+        channel: usize,
+    },
+    GetArtnetOutputSubscriptions,
 }

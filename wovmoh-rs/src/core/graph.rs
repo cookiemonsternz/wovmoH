@@ -185,11 +185,15 @@ impl Graph {
     pub fn disconnect(&mut self, input_field_id: InputId) {
         let input_field = &mut self.inputs[input_field_id];
 
-        match input_field.connected_output {
+        let output_id = match input_field.connected_output {
             Some(id) => id,
             None => panic!("Cannot disconnect, not connected!"),
         };
         input_field.connected_output = None;
+
+        self.outputs[output_id]
+            .connections
+            .retain(|&id| id != input_field_id);
 
         self.order_dirty = true;
     }
@@ -560,6 +564,17 @@ impl Graph {
                 ),
             },
             MidiDataMessage::SysEx => todo!(),
+        }
+
+        match message {
+            MidiDataMessage::ControlChange { controller, data } => {
+                println!(
+                    "updating input: {} with value: {}",
+                    field_index,
+                    data.unwrap()
+                )
+            }
+            _ => {}
         }
     }
 

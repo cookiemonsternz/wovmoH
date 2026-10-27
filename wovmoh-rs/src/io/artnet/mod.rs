@@ -8,10 +8,10 @@ use std::{
     time::Duration,
 };
 
-use artnet_protocol::*;
+use artnet_protocol::{byteorder::BigEndian, *};
 use serde::{Deserialize, Serialize};
 
-use crate::core::{graph::GraphId, node::NodeId};
+use crate::core::{graph::GraphId, graph_manager::GraphManager, node::NodeId};
 
 pub struct WovmohArtCommand {
     pub graph: GraphId,
@@ -34,11 +34,19 @@ pub struct ArtnetInputFieldSubscription {
     pub channel: usize,
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct ArtnetOutputPinSubscriptionDTO {
+    pub graph_id: GraphId,
+    pub node_id: NodeId,
+    pub pin_index: usize,
+    pub channel: usize,
+}
+
 #[derive(Debug, PartialEq)]
 pub struct ArtnetOutputPinSubscription {
     pub graph_id: GraphId,
     pub pin: usize,
-    pub channel: i16,
+    pub channel: usize,
 }
 
 pub struct ArtnetManager {
@@ -154,5 +162,39 @@ impl ArtnetManager {
 
     pub fn poll(&self) {
         let _ = self.tx.send(ArtCommand::Poll(Poll::default()));
+    }
+
+    pub fn send_output_events(&mut self, graphs: &GraphManager) {
+        let mut data: Vec<u8> = Vec::new();
+        data.resize(512, 0);
+        for output_subscription in self.output_subscriptions.read().unwrap().iter() {
+            let graph = graphs.get_graph(output_subscription.graph_id);
+            let pin = graph.get_output(output_subscription.pin);
+            let value = pin.value.clone();
+
+            let num = match value {
+                crate::types::data_type::DataValue::Number(x) => x as u8,
+                crate::types::data_type::DataValue::Boolean(x) => {
+                    if x {
+                        255 as u8
+                    } else {
+                        0 as u8
+                    }
+                }
+                _ => todo!(),
+            } as u8;
+
+            data[output_subscription.channel - 1] = num;
+        }
+
+        let output = Output {
+            data: PaddedData::from(data),
+            ..Default::default()
+        };
+        // println!("{:?}", output.data);
+
+        self.tx
+            .send(ArtCommand::Output(output))
+            .expect("Could not send command to channel");
     }
 }

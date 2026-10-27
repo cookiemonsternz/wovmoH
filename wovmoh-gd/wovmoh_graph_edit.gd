@@ -96,7 +96,7 @@ func _on_popup_request(pos: Vector2):
 	for child in get_children():
 		if child is AddNodePopupMenu:
 			child.queue_free()
-	var popup_scene: Control = add_node_popup_menu_scene.instantiate()
+	var popup_scene: AddNodePopupMenu = add_node_popup_menu_scene.instantiate()
 	popup_scene.position = pos
 	add_child(popup_scene)
 

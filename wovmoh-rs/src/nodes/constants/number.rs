@@ -17,6 +17,7 @@ fn constant_number_process(inputs: Vec<DataValue>, outputs: &mut Vec<&mut DataVa
 
 pub static CONSTANT_NUMBER_DESCRIPTOR: NodeDescriptor = NodeDescriptor {
     name: "Constant Number",
+    category: "Constant",
     inputs: &[InputDesc {
         name: "Number",
         data_type: DataType::Number,

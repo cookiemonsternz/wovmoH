@@ -1,10 +1,10 @@
 use serde::Serialize;
 
 use crate::{
-    core::graph::GraphId,
+    core::{graph::GraphId, node::NodeDescriptorDTO},
     dto::graph_dto::GraphDto,
     io::{
-        artnet::ArtnetInputFieldSubscriptionDTO,
+        artnet::{ArtnetInputFieldSubscriptionDTO, ArtnetOutputPinSubscriptionDTO},
         midi::{
             MidiInputFieldSubscription, MidiInputFieldSubscriptionDTO,
             MidiOutputPinSubscriptionDTO, PortDescriptor,
@@ -28,8 +28,8 @@ pub enum ResponseData {
     GraphData {
         graph: GraphDto,
     },
-    NodeKinds {
-        kinds: Vec<&'static str>,
+    NodeDescriptors {
+        descriptors: Vec<NodeDescriptorDTO>,
     },
     AvailableMidiInputs {
         inputs: Vec<PortDescriptor>,
@@ -57,5 +57,8 @@ pub enum ResponseData {
     },
     ArtnetInputSubscriptions {
         subscriptions: Vec<ArtnetInputFieldSubscriptionDTO>,
+    },
+    ArtnetOutputSubscriptions {
+        subscriptions: Vec<ArtnetOutputPinSubscriptionDTO>,
     },
 }

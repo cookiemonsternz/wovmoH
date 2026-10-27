@@ -70,12 +70,12 @@ func get_graph(id: int) -> Variant:
 	
 	return response["graph"]
 
-func get_node_kinds() -> Array:
-	var response = await _send('{"id":%s,"command":{"type":"GetNodeKinds"}}')
-	if not response or response["type"] != "NodeKinds":
+func get_node_descriptors() -> Array:
+	var response = await _send('{"id":%s,"command":{"type":"GetNodeDescriptors"}}')
+	if not response or response["type"] != "NodeDescriptors":
 		return []
 	
-	return response["kinds"]
+	return response["descriptors"]
 
 func set_node_field_value(graph_id: int, node_id: int, field_index: int, type: String, value: Variant) -> bool:
 	var command = '"command":{"type":"SetInputFieldValue", "graph_id":%s, "node_id":%s, "field_index":%s,  "value":{"type":"%s", "value":%s}}' % [graph_id, node_id, field_index, type, value]
@@ -248,6 +248,29 @@ func subscribe_artnet_input_to_field(graph_id: int, node_id: int, field_index: i
 
 func unsubscribe_artnet_input_from_field(graph_id: int, node_id: int, field_index: int, channel: int):
 	var command = '"command":{"type":"UnsubscribeArtnetInputFromField", "graph_id":%s, "node_id":%s, "field_index":%s, "channel":%s}' % [graph_id, node_id, field_index, channel]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func get_artnet_output_subscriptions() -> Array[Variant]:
+	var response = await _send('{"id":%s,"command":{"type":"GetArtnetOutputSubscriptions"}}')
+	if not response or response["type"] != "ArtnetOutputSubscriptions":
+		return []
+	
+	return response["subscriptions"]
+
+func subscribe_artnet_output_to_pin(graph_id: int, node_id: int, pin_index: int, channel: int) -> bool:
+	var command = '"command":{"type":"SubscribeArtnetOutputToPin", "graph_id":%s, "node_id":%s, "pin_index":%s, "channel":%s}' % [graph_id, node_id, pin_index, channel]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func unsubscribe_artnet_output_from_pin(graph_id: int, node_id: int, pin_index: int, channel: int):
+	var command = '"command":{"type":"UnsubscribeArtnetOutputFromPin", "graph_id":%s, "node_id":%s, "pin_index":%s, "channel":%s}' % [graph_id, node_id, pin_index, channel]
 	var response = await _send('{"id":%s,' + command + "}")
 	if not response or response["type"] != "Acknowledge":
 		return false

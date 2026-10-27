@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://hh4nobsy8hq3"]
+
+[ext_resource type="Script" uid="uid://dcvw1kbmg0il8" path="res://test/test_popup_menu.gd" id="1_rka75"]
+
+[node name="Control" type="Control" unique_id=455625469]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PopupMenu" type="PopupMenu" parent="." unique_id=157265315]
+oversampling_override = 1.0
+visible = true
+script = ExtResource("1_rka75")
+
+[node name="SubmenuTest" type="PopupMenu" parent="PopupMenu" unique_id=252314215]
+oversampling_override = 1.0

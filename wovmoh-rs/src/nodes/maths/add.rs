@@ -21,6 +21,7 @@ fn add_numbers_process(inputs: Vec<DataValue>, outputs: &mut Vec<&mut DataValue>
 
 pub static ADD_NUMBERS_DESCRIPTOR: NodeDescriptor = NodeDescriptor {
     name: "Add",
+    category: "Maths",
     inputs: &[
         InputDesc {
             name: "Number A",
