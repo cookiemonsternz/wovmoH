@@ -503,7 +503,7 @@ impl Graph {
                 DataValue::Number(_) => input.value = DataValue::Number(pressure.unwrap() as f64),
                 DataValue::Boolean(_) => {
                     input.value =
-                        DataValue::Boolean(if pressure.unwrap() < 128 { false } else { true })
+                        DataValue::Boolean(if pressure.unwrap() < 64 { false } else { true })
                 }
                 DataValue::Color(color) => eprintln!(
                     "Cannot set a Color field with a midi input of type PolyphonicAftertouch {{note: {}, pressure: {}}}",
@@ -524,7 +524,7 @@ impl Graph {
             MidiDataMessage::ControlChange { controller, data } => match input.value {
                 DataValue::Number(_) => input.value = DataValue::Number(data.unwrap() as f64),
                 DataValue::Boolean(_) => {
-                    input.value = DataValue::Boolean(if data.unwrap() < 128 { false } else { true })
+                    input.value = DataValue::Boolean(if data.unwrap() < 64 { false } else { true })
                 }
                 DataValue::Color(color) => eprintln!(
                     "Cannot set a Color field with a midi input of type ControlChange {{controller: {}, data: {}}}",
