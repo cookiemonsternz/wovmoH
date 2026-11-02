@@ -283,7 +283,6 @@ split_offset = -342
 [node name="WovmohGraphEdit" type="GraphEdit" parent="VBoxContainer/GraphView/HSplitContainer" unique_id=1802487965]
 layout_mode = 2
 size_flags_horizontal = 3
-scroll_offset = Vector2(-360, -180)
 right_disconnects = true
 minimap_enabled = false
 script = ExtResource("1_ig7tw")

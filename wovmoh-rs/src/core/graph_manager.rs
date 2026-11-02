@@ -27,6 +27,18 @@ impl GraphManager {
         &mut self.graphs[id]
     }
 
+    pub fn try_get_graph(&self, id: GraphId) -> Result<&Graph, String> {
+        self.graphs
+            .get(id)
+            .ok_or_else(|| format!("Bad graph_id: {id}"))
+    }
+
+    pub fn try_get_graph_mut(&mut self, id: GraphId) -> Result<&mut Graph, String> {
+        self.graphs
+            .get_mut(id)
+            .ok_or_else(|| format!("Bad graph_id: {id}"))
+    }
+
     pub fn handle_midi_event(&mut self, event: MidiEvent) {
         let graph = self.get_graph_mut(event.graph);
         graph.update_midi_input(event.field, &event.message);

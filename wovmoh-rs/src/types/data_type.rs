@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::PartialEq;
 use std::ops::{Add, Div, Mul, Sub};
 
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum DataType {
     Number,
     Boolean,

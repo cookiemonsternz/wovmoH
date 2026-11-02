@@ -1,5 +1,7 @@
 extends Node
 
+signal api_error(message: String)
+
 var client: TcpClient
 
 var _request_id: int = 0
@@ -31,10 +33,32 @@ func _try_get_response(id: int) -> Variant:
 	return
 
 func _parse_response(response: Variant) -> Variant:
-	if not response["data"].has("Ok"): 
-		push_error("Response error: ", response)
+	if not response is Dictionary or not response.has("data"):
+		var message = "invalid response"
+		push_error(message)
+		api_error.emit(message)
 		return null
-	else: return response["data"]["Ok"]
+
+	var data: Variant = response["data"]
+	if data.has("Ok"):
+		var result: Variant = data["Ok"]
+		if result is Dictionary and result.get("type", "") == "Error":
+			var message: String = str(result.get("message", "Backend error"))
+			push_error(message)
+			api_error.emit(message)
+			return null
+		return result
+
+	if data.has("Err"):
+		var message: String = str(data["Err"])
+		push_error(message)
+		api_error.emit(message)
+		return null
+
+	var message = "unknown response"
+	push_error(message)
+	api_error.emit(message)
+	return null
 
 func _send(message: String):
 	client.send((message % _request_id).to_utf8_buffer())
@@ -271,6 +295,22 @@ func subscribe_artnet_output_to_pin(graph_id: int, node_id: int, pin_index: int,
 
 func unsubscribe_artnet_output_from_pin(graph_id: int, node_id: int, pin_index: int, channel: int):
 	var command = '"command":{"type":"UnsubscribeArtnetOutputFromPin", "graph_id":%s, "node_id":%s, "pin_index":%s, "channel":%s}' % [graph_id, node_id, pin_index, channel]
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func save_file(path: String) -> bool:
+	var command = '"command":{"type":"SaveFile", "path":"%s"}' % path
+	var response = await _send('{"id":%s,' + command + "}")
+	if not response or response["type"] != "Acknowledge":
+		return false
+	
+	return true
+
+func load_file(path: String) -> bool:
+	var command = '"command":{"type":"LoadFile", "path":"%s"}' % path
 	var response = await _send('{"id":%s,' + command + "}")
 	if not response or response["type"] != "Acknowledge":
 		return false

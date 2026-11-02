@@ -1,11 +1,11 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::core::graph::GraphId;
 
 use super::connection_dto::ConnectionDto;
 use super::node_dto::NodeDto;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GraphDto {
     pub id: GraphId,
     pub nodes: Vec<NodeDto>,

@@ -1,5 +1,6 @@
 use std::io::Write;
 use std::net::TcpStream;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use strum::IntoEnumIterator;
@@ -33,16 +34,41 @@ fn write(data: ResponseData, request: Request, stream: &mut TcpStream) {
     stream.write(json.as_bytes()).unwrap();
 }
 
+fn write_error(message: impl Into<String>, request: Request, stream: &mut TcpStream) {
+    write(
+        ResponseData::Error {
+            message: message.into(),
+        },
+        request,
+        stream,
+    );
+}
+
 pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpStream) {
+    let mut app = match app.lock() {
+        Ok(app) => app,
+        Err(err) => {
+            write_error("App mutex locket", request, stream);
+            return;
+        }
+    };
     match request.command {
         Command::Poll => write(ResponseData::Acknowledge, request, stream),
         Command::AddExampleGraph { id } => {
-            let mut app = app.lock().unwrap();
-            let graph = app.graphs.get_graph_mut(id);
+            let graph = match app.graphs.try_get_graph_mut(id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
 
             graph.add_node(NodeKind::ConstantColor, NodeUIState::default());
             graph.add_node(NodeKind::ConstantColor, NodeUIState::default());
-            graph.connect(0, 1);
+            if let Err(error) = graph.try_connect(0, 1) {
+                write_error(error, request, stream);
+                return;
+            }
             graph.add_node(NodeKind::ConstantNumber, NodeUIState::default());
             graph.add_node(
                 NodeKind::ConstantBoolean,
@@ -54,11 +80,17 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::AddGraph => {
-            let id = app.lock().as_mut().unwrap().graphs.add_graph();
+            let id = app.graphs.add_graph();
             write(ResponseData::GraphCreated { id }, request, stream);
         }
         Command::GetGraph { id } => {
-            let graph = app.lock().unwrap().graphs.get_graph(id).to_dto();
+            let graph = match app.graphs.try_get_graph(id) {
+                Ok(graph) => graph.to_dto(),
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             write(ResponseData::GraphData { graph }, request, stream);
         }
         Command::GetNodeDescriptors => {
@@ -84,10 +116,20 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             field_index,
             value,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
-            let field = graph.input_for_mut(node_id, field_index);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
+            let field = match graph.try_input_for_mut(node_id, field_index) {
+                Ok(field) => field,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             field.value = value;
 
             write(ResponseData::Acknowledge, request, stream);
@@ -99,12 +141,31 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             node_to,
             field_to,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
-            let pin_id = graph.output_id_for(node_from, pin_from);
-            let field_id = graph.input_id_for(node_to, field_to);
-            graph.connect(pin_id, field_id);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
+            let pin_id = match graph.try_output_id_for(node_from, pin_from) {
+                Ok(pin_id) => pin_id,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
+            let field_id = match graph.try_input_id_for(node_to, field_to) {
+                Ok(field_id) => field_id,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
+            if let Err(error) = graph.try_connect(pin_id, field_id) {
+                write_error(error, request, stream);
+                return;
+            }
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::DisconnectNodes {
@@ -114,11 +175,24 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             node_to,
             field_to,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
-            let field_id = graph.input_id_for(node_to, field_to);
-            graph.disconnect(field_id);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
+            let field_id = match graph.try_input_id_for(node_to, field_to) {
+                Ok(field_id) => field_id,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
+            if let Err(error) = graph.try_disconnect(field_id) {
+                write_error(error, request, stream);
+                return;
+            }
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::AddNode {
@@ -126,9 +200,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             kind,
             position,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             graph.add_node(
                 kind,
                 NodeUIState {
@@ -143,18 +221,36 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             node_id,
             position,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
-            let node = graph.get_node_mut(node_id);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
+            let node = match graph.try_get_node_mut(node_id) {
+                Ok(node) => node,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             node.ui_state.position = position;
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::DeleteNode { graph_id, node_id } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
-            graph.remove_node(node_id);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
+            if let Err(error) = graph.try_remove_node(node_id) {
+                write_error(error, request, stream);
+                return;
+            }
+            write(ResponseData::Acknowledge, request, stream);
         }
         Command::GetAvailableMidiInputs => {
             write(
@@ -175,21 +271,14 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             );
         }
         Command::ConnectMidiInput { ref id } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
             app.midi.connect_input(id.to_string());
-            drop(lock);
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::ConnectMidiOutput { ref id } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
             app.midi.connect_output(id.to_string());
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::GetConnectedMidiInputs => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
             let inputs = app.midi.get_connected_inputs();
             write(
                 ResponseData::ConnectedMidiInputs { inputs },
@@ -198,8 +287,6 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             );
         }
         Command::GetConnectedMidiOutputs => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
             let outputs = app.midi.get_connected_outputs();
             write(
                 ResponseData::ConnectedMidiOutputs { outputs },
@@ -213,9 +300,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             field_index,
             ref message,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             let field_id = graph.input_id_for(node_id, field_index);
             app.midi.subscribe_input(MidiInputFieldSubscription {
                 graph: graph_id,
@@ -225,11 +316,24 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::GetMidiInputSubscriptions => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
             let mut subscriptions: Vec<MidiInputFieldSubscriptionDTO> = Vec::new();
-            for subscription in app.midi.input_subscriptions.read().unwrap().iter() {
-                let graph = app.graphs.get_graph(subscription.graph);
+
+            let current_subscriptions = match app.midi.input_subscriptions.read() {
+                Ok(subscriptions) => subscriptions,
+                Err(error) => {
+                    write_error("App mutex locked", request, stream);
+                    return;
+                }
+            };
+
+            for subscription in current_subscriptions.iter() {
+                let graph = match app.graphs.try_get_graph(subscription.graph) {
+                    Ok(graph) => graph,
+                    Err(err) => {
+                        write_error(err, request, stream);
+                        return;
+                    }
+                };
                 let node = graph.node_for_input(subscription.field);
                 let index = graph.input_index_for_input(subscription.field);
                 subscriptions.push(MidiInputFieldSubscriptionDTO {
@@ -252,12 +356,14 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             field_index,
             ref message,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let field_id = app
-                .graphs
-                .get_graph(graph_id)
-                .input_id_for(node_id, field_index);
+            let graph = match app.graphs.try_get_graph(graph_id) {
+                Ok(graph) => graph,
+                Err(err) => {
+                    write_error(err, request, stream);
+                    return;
+                }
+            };
+            let field_id = graph.input_id_for(node_id, field_index);
             app.midi.unsubscribe_input(MidiInputFieldSubscription {
                 graph: graph_id,
                 field: field_id,
@@ -272,9 +378,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             ref midi_output,
             ref message,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             let pin_id = graph.output_id_for(node_id, pin_index);
             app.midi.subscribe_output(MidiOutputPinSubscription {
                 midi_output: midi_output.clone(),
@@ -285,11 +395,15 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::GetMidiOutputSubscriptions => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
             let mut subscriptions: Vec<MidiOutputPinSubscriptionDTO> = Vec::new();
             for subscription in app.midi.output_subscriptions.read().unwrap().iter() {
-                let graph = app.graphs.get_graph(subscription.graph);
+                let graph = match app.graphs.try_get_graph(subscription.graph) {
+                    Ok(graph) => graph,
+                    Err(error) => {
+                        write_error(error, request, stream);
+                        return;
+                    }
+                };
                 let node = graph.node_for_output(subscription.pin);
                 let index = graph.output_index_for_output(subscription.pin);
                 subscriptions.push(MidiOutputPinSubscriptionDTO {
@@ -314,12 +428,14 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             ref midi_output,
             ref message,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let pin_id = app
-                .graphs
-                .get_graph(graph_id)
-                .output_id_for(node_id, pin_index);
+            let graph = match app.graphs.try_get_graph(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
+            let pin_id = graph.output_id_for(node_id, pin_index);
             app.midi.unsubscribe_output(MidiOutputPinSubscription {
                 midi_output: midi_output.clone(),
                 graph: graph_id,
@@ -347,8 +463,6 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             );
         }
         Command::ArtNetPoll => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
             app.artnet.poll();
             write(ResponseData::Acknowledge, request, stream);
         }
@@ -358,9 +472,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             field_index,
             channel,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             let field_id = graph.input_id_for(node_id, field_index);
             app.artnet.subscribe_input(ArtnetInputFieldSubscription {
                 graph_id,
@@ -375,9 +493,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             field_index,
             channel,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             let field_id = graph.input_id_for(node_id, field_index);
             app.artnet.unsubscribe_input(ArtnetInputFieldSubscription {
                 graph_id,
@@ -387,11 +509,15 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::GetArtnetInputSubscriptions => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
             let mut subscriptions: Vec<ArtnetInputFieldSubscriptionDTO> = Vec::new();
             for subscription in app.artnet.input_subscriptions.read().unwrap().iter() {
-                let graph = app.graphs.get_graph(subscription.graph_id);
+                let graph = match app.graphs.try_get_graph(subscription.graph_id) {
+                    Ok(graph) => graph,
+                    Err(error) => {
+                        write_error(error, request, stream);
+                        return;
+                    }
+                };
                 let node = graph.node_for_input(subscription.field);
                 let index = graph.input_index_for_input(subscription.field);
                 subscriptions.push(ArtnetInputFieldSubscriptionDTO {
@@ -414,9 +540,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             pin_index,
             channel,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             let pin_id = graph.output_id_for(node_id, pin_index);
             app.artnet.subscribe_output(ArtnetOutputPinSubscription {
                 graph_id,
@@ -431,9 +561,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             pin_index,
             channel,
         } => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
-            let graph = app.graphs.get_graph_mut(graph_id);
+            let graph = match app.graphs.try_get_graph_mut(graph_id) {
+                Ok(graph) => graph,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             let pin_id = graph.output_id_for(node_id, pin_index);
             app.artnet.unsubscribe_output(ArtnetOutputPinSubscription {
                 graph_id,
@@ -443,11 +577,15 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::GetArtnetOutputSubscriptions => {
-            let mut lock = app.lock();
-            let app = lock.as_mut().unwrap();
             let mut subscriptions: Vec<ArtnetOutputPinSubscriptionDTO> = Vec::new();
             for subscription in app.artnet.output_subscriptions.read().unwrap().iter() {
-                let graph = app.graphs.get_graph(subscription.graph_id);
+                let graph = match app.graphs.try_get_graph(subscription.graph_id) {
+                    Ok(graph) => graph,
+                    Err(error) => {
+                        write_error(error, request, stream);
+                        return;
+                    }
+                };
                 let node = graph.node_for_input(subscription.pin);
                 let index = graph.output_index_for_output(subscription.pin);
                 subscriptions.push(ArtnetOutputPinSubscriptionDTO {
@@ -463,6 +601,22 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                 request,
                 stream,
             );
+        }
+        Command::SaveFile { ref path } => {
+            let path = PathBuf::from(path);
+            if let Err(error) = app.save(path) {
+                write_error(error, request, stream);
+                return;
+            }
+            write(ResponseData::Acknowledge, request, stream);
+        }
+        Command::LoadFile { ref path } => {
+            let path = PathBuf::from(path);
+            if let Err(error) = app.load_override(path) {
+                write_error(error, request, stream);
+                return;
+            }
+            write(ResponseData::Acknowledge, request, stream);
         }
     }
 }

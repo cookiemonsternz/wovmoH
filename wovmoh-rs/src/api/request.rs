@@ -132,4 +132,10 @@ pub enum Command {
         channel: usize,
     },
     GetArtnetOutputSubscriptions,
+    SaveFile {
+        path: String,
+    },
+    LoadFile {
+        path: String,
+    },
 }

@@ -1,6 +1,6 @@
 extends VBoxContainer
 
-var element_scene = preload("res://output_subscription_table_element.tscn")
+var element_scene = preload("res://io/midi/output_subscription_table_element.tscn")
 
 func _on_midi_config_visibility_changed() -> void:
 	if not Backend.is_connected_to_host(): return

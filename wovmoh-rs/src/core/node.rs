@@ -19,10 +19,11 @@ pub struct Node {
 
 impl Node {
     pub fn to_dto(&self) -> NodeDto {
+        let kind_static: &'static str = self.kind.into();
         NodeDto {
             id: self.id,
-            name: self.kind.descriptor().name,
-            kind: self.kind.into(),
+            name: self.kind.descriptor().name.to_string(),
+            kind: kind_static.to_string(),
             position: self.ui_state.position,
             name_override: self.ui_state.name_override.clone(),
             inputs: self
@@ -31,7 +32,7 @@ impl Node {
                 .inputs
                 .iter()
                 .map(|x| InputFieldDto {
-                    name: x.name,
+                    name: x.name.to_string(),
                     data_type: x.data_type,
                     value: DataValue::default(x.data_type),
                     constraints: x.constraints,
@@ -43,7 +44,7 @@ impl Node {
                 .outputs
                 .iter()
                 .map(|x| OutputPinDto {
-                    name: x.name,
+                    name: x.name.to_string(),
                     data_type: x.data_type,
                     value: DataValue::default(x.data_type),
                 })
@@ -53,7 +54,14 @@ impl Node {
 }
 
 #[derive(
-    Debug, Copy, Clone, Serialize, Deserialize, strum_macros::IntoStaticStr, strum_macros::EnumIter,
+    Debug,
+    Copy,
+    Clone,
+    Serialize,
+    Deserialize,
+    strum_macros::IntoStaticStr,
+    strum_macros::EnumIter,
+    strum_macros::EnumString,
 )]
 pub enum NodeKind {
     ConstantNumber,
@@ -96,7 +104,7 @@ pub struct InputDesc {
     pub constraints: InputConstraints,
 }
 
-#[derive(Serialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 #[serde(tag = "type", content = "value")]
 pub enum InputConstraints {
     Number { min: Option<f64>, max: Option<f64> },

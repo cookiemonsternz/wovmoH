@@ -22,6 +22,9 @@ pub struct Response {
 #[serde(tag = "type")]
 pub enum ResponseData {
     Acknowledge,
+    Error {
+        message: String,
+    },
     GraphCreated {
         id: GraphId,
     },

@@ -43,6 +43,12 @@ impl Graph {
         &mut self.nodes[node_id]
     }
 
+    pub fn try_get_node_mut(&mut self, node_id: NodeId) -> Result<&mut Node, String> {
+        self.nodes
+            .get_mut(node_id)
+            .ok_or_else(|| format!("Node {node_id} not in graph {}", self.id))
+    }
+
     pub fn has_node(&self, node_id: NodeId) -> bool {
         return self.nodes.len() < node_id;
     }
@@ -217,16 +223,29 @@ impl Graph {
     pub fn input_id_for(&self, node_id: NodeId, field_index: usize) -> usize {
         let node = match self.nodes.iter().find(|&x| x.id == node_id) {
             Some(node) => node,
-            None => panic!("Node not found in Graph"),
+            None => panic!("Node not in Graph"),
         };
 
         node.inputs[field_index]
     }
 
+    pub fn try_input_id_for(&self, node_id: NodeId, field_index: usize) -> Result<usize, String> {
+        let node = self
+            .nodes
+            .iter()
+            .find(|node| node.id == node_id)
+            .ok_or_else(|| format!("Node {node_id} ot in graph {}", self.id))?;
+
+        node.inputs
+            .get(field_index)
+            .copied()
+            .ok_or_else(|| format!("Input field {field_index} isn't in node {node_id}"))
+    }
+
     pub fn input_for(&self, node_id: NodeId, field_index: usize) -> &InputField {
         let node = match self.nodes.iter().find(|&x| x.id == node_id) {
             Some(node) => node,
-            None => panic!("Node not found in Graph"),
+            None => panic!("Node not in graph"),
         };
 
         let id = node.inputs[field_index];
@@ -237,7 +256,7 @@ impl Graph {
     pub fn input_for_mut(&mut self, node_id: NodeId, field_index: usize) -> &mut InputField {
         let node = match self.nodes.iter().find(|&x| x.id == node_id) {
             Some(node) => node,
-            None => panic!("Node not found in Graph"),
+            None => panic!("Node not in graph"),
         };
 
         let id = node.inputs[field_index];
@@ -245,10 +264,21 @@ impl Graph {
         &mut self.inputs[id]
     }
 
+    pub fn try_input_for_mut(
+        &mut self,
+        node_id: NodeId,
+        field_index: usize,
+    ) -> Result<&mut InputField, String> {
+        let input_id = self.try_input_id_for(node_id, field_index)?;
+        self.inputs
+            .get_mut(input_id)
+            .ok_or_else(|| format!("Input field {field_index} not in node {node_id}"))
+    }
+
     pub fn inputs_for(&self, node_id: NodeId) -> Vec<&InputField> {
         let node = match self.nodes.iter().find(|&x| x.id == node_id) {
             Some(node) => node,
-            None => panic!("Node not found in Graph"),
+            None => panic!("Node not in graph"),
         };
 
         node.inputs.iter().map(|&id| &self.inputs[id]).collect()
@@ -257,7 +287,7 @@ impl Graph {
     pub fn inputs_for_mut(&mut self, node_id: NodeId) -> Vec<&mut InputField> {
         let node = match self.nodes.iter().find(|&x| x.id == node_id) {
             Some(node) => node,
-            None => panic!("Node not found in Graph"),
+            None => panic!("Node not in graph"),
         };
 
         // node.outputs
@@ -285,10 +315,63 @@ impl Graph {
     pub fn output_id_for(&self, node_id: NodeId, pin_index: usize) -> usize {
         let node = match self.nodes.iter().find(|&x| x.id == node_id) {
             Some(node) => node,
-            None => panic!("Node not found in Graph"),
+            None => panic!("Node not in graph"),
         };
 
         node.outputs[pin_index]
+    }
+
+    pub fn try_output_id_for(&self, node_id: NodeId, pin_index: usize) -> Result<usize, String> {
+        let node = self
+            .nodes
+            .iter()
+            .find(|node| node.id == node_id)
+            .ok_or_else(|| format!("Node {node_id} not in graph {}", self.id))?;
+
+        node.outputs
+            .get(pin_index)
+            .copied()
+            .ok_or_else(|| format!("Output pin {pin_index} isn't in node {node_id}"))
+    }
+
+    pub fn try_connect(&mut self, from: OutputId, to: InputId) -> Result<(), String> {
+        if self.outputs.get(from).is_none() {
+            return Err(format!("Output pin {from} does not exist"));
+        }
+        if self.inputs.get(to).is_none() {
+            return Err(format!("Input field {to} does not exist"));
+        }
+        if self.inputs[to].connected_output.is_some() {
+            return Err(format!("Input field {to} is already connected"));
+        }
+
+        self.connect(from, to);
+        Ok(())
+    }
+
+    pub fn try_disconnect(&mut self, input_field_id: InputId) -> Result<(), String> {
+        let input = self
+            .inputs
+            .get(input_field_id)
+            .ok_or_else(|| format!("Input field {input_field_id} does not exist"))?;
+        if input.connected_output.is_none() {
+            return Err(format!("Input field {input_field_id} is not connected"));
+        }
+
+        self.disconnect(input_field_id);
+        Ok(())
+    }
+
+    pub fn try_remove_node(&mut self, node_id: NodeId) -> Result<(), String> {
+        if self.nodes.get(node_id).is_none() {
+            return Err(format!(
+                "Node {node_id} does not exist in graph {}",
+                self.id
+            ));
+        }
+
+        self.remove_node(node_id);
+        Ok(())
     }
 
     pub fn output_for(&self, node_id: NodeId, pin_index: usize) -> &OutputPin {
