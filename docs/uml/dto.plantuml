@@ -37,6 +37,43 @@ struct GraphDto {
   +usize id
 }
 
+struct "AppDto" as AppDto2 {
+  
+}
+
+struct AppDto {}
+
+struct MidiInputFieldSubscriptionDTO {
+  +GraphId graph_id
+  +NodeId node_id
+  +usize pin_index
+  +MidiMessage message
+}
+
+struct MidiOutputPinSubscriptionDTO {
+  +GraphId graph_id
+  +NodeId node_id
+  +usize pin_index
+  +MidiMessage message
+  +String midi_output
+}
+
+struct ArtnetInputFieldSubscriptionDTO {
+  +GraphId graph_id
+  +NodeId node_id
+  +usize field_index
+  +usize channel
+}
+
+struct ArtnetOutputPinSubscriptionDTO {
+  +GraphId graph_id
+  +NodeId node_id
+  +usize pin_index
+  +usize channel
+}
+
+
+
 enum InputConstraints {
   NUMBER { f64 min, f64 max }
   BOOLEAN
@@ -51,5 +88,11 @@ NodeDto *--"0..*" OutputPinDto
 InputFieldDto *-- DataValueDto
 InputFieldDto *-- InputConstraints
 OutputPinDto *-- DataValueDto
+
+AppDto *--"0..*" GraphDto
+AppDto2 *--"0..*" MidiInputFieldSubscriptionDTO
+AppDto2 *--"0..*" MidiOutputPinSubscriptionDTO
+AppDto2 *--"0..*" ArtnetInputFieldSubscriptionDTO
+AppDto2 *--"0..*" ArtnetOutputPinSubscriptionDTO
 'END DTO SECTION'
 @enduml
