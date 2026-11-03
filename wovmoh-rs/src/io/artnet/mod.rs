@@ -88,13 +88,13 @@ impl ArtnetManager {
                     continue;
                 }
 
-                let (length, addr) = maybe.unwrap();
+                let (length, _addr) = maybe.unwrap();
                 let command = ArtCommand::from_buffer(&buffer[..length]).unwrap();
 
                 // println!("ARTNET: Recieved {:?}", command);
                 match command {
-                    ArtCommand::Poll(poll) => {}
-                    ArtCommand::PollReply(reply) => {
+                    ArtCommand::Poll(_poll) => {}
+                    ArtCommand::PollReply(_reply) => {
                         // println!(
                         //     "Recieved poll reply from {:?}",
                         //     String::from_utf8(Vec::from(reply.long_name))
@@ -247,7 +247,7 @@ mod tests {
         use crate::io::artnet::ArtnetManager;
         use std::sync::mpsc;
 
-        let (tx, rx) = mpsc::channel::<WovmohArtCommand>();
+        let (tx, _rx) = mpsc::channel::<WovmohArtCommand>();
         ArtnetManager::new(tx);
     }
 }

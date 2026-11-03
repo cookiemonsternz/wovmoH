@@ -1,17 +1,12 @@
 use std::{
-    any::Any,
     collections::HashMap,
-    ops::Index,
-    sync::{Arc, Mutex, RwLock, mpsc::Sender},
+    sync::{Arc, RwLock, mpsc::Sender},
 };
 
-use midir::{
-    Ignore, MidiInput, MidiInputConnection, MidiInputPort, MidiOutput, MidiOutputConnection,
-};
+use midir::{Ignore, MidiInput, MidiInputConnection, MidiOutput, MidiOutputConnection};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app::App,
     core::{graph::GraphId, graph_manager::GraphManager, node::NodeId},
     types::data_type::DataValue,
 };
@@ -62,9 +57,9 @@ impl MidiDataMessage {
             MidiDataMessage::ControlChange { controller, data } => {
                 [0b10110000, controller.unwrap(), data.unwrap()]
             }
-            MidiDataMessage::ProgramChange { program } => todo!(),
-            MidiDataMessage::ChannelAftertouch { pressure } => todo!(),
-            MidiDataMessage::PitchWheel { pitch } => todo!(),
+            MidiDataMessage::ProgramChange { program: _ } => todo!(),
+            MidiDataMessage::ChannelAftertouch { pressure: _ } => todo!(),
+            MidiDataMessage::PitchWheel { pitch: _ } => todo!(),
             MidiDataMessage::SysEx => todo!(),
         }
     }
@@ -380,7 +375,7 @@ impl MidiManager {
                 .connect(
                     in_port,
                     "midir-read-input",
-                    move |stamp, message, _| {
+                    move |_stamp, message, _| {
                         // println!("{}: {:?} (len = {})", stamp, message, message.len());
                         match MidiManager::parse_midi_message(message) {
                             Ok(message) => {
@@ -389,7 +384,7 @@ impl MidiManager {
                                     MidiManager::handle_midi_message(&subscriptions, message)
                                 };
                                 for event in events {
-                                    tx.send(event);
+                                    tx.send(event).unwrap();
                                 }
                             }
                             Err(_) => return,
@@ -445,7 +440,7 @@ impl MidiManager {
             let value = pin.value.clone();
 
             let midi_message = match output_subscription.message {
-                MidiDataMessage::NoteOff { note, velocity } => {
+                MidiDataMessage::NoteOff { note, velocity: _ } => {
                     let vel = match value {
                         DataValue::Number(x) => x as u8,
                         DataValue::Boolean(x) => {
@@ -455,16 +450,16 @@ impl MidiManager {
                                 0
                             }
                         }
-                        DataValue::Color(color) => todo!(),
-                        DataValue::Vector3(vec3) => todo!(),
-                        DataValue::Point3(vec3) => todo!(),
+                        DataValue::Color(_color) => todo!(),
+                        DataValue::Vector3(_vec3) => todo!(),
+                        DataValue::Point3(_vec3) => todo!(),
                     };
                     MidiDataMessage::NoteOff {
                         note,
                         velocity: Some(vel),
                     }
                 }
-                MidiDataMessage::NoteOn { note, velocity } => {
+                MidiDataMessage::NoteOn { note, velocity: _ } => {
                     let vel = match value {
                         DataValue::Number(x) => x as u8,
                         DataValue::Boolean(x) => {
@@ -474,17 +469,23 @@ impl MidiManager {
                                 0
                             }
                         }
-                        DataValue::Color(color) => todo!(),
-                        DataValue::Vector3(vec3) => todo!(),
-                        DataValue::Point3(vec3) => todo!(),
+                        DataValue::Color(_color) => todo!(),
+                        DataValue::Vector3(_vec3) => todo!(),
+                        DataValue::Point3(_vec3) => todo!(),
                     };
                     MidiDataMessage::NoteOn {
                         note,
                         velocity: Some(vel),
                     }
                 }
-                MidiDataMessage::PolyphonicAftertouch { note, pressure } => todo!(),
-                MidiDataMessage::ControlChange { controller, data } => {
+                MidiDataMessage::PolyphonicAftertouch {
+                    note: _,
+                    pressure: _,
+                } => todo!(),
+                MidiDataMessage::ControlChange {
+                    controller,
+                    data: _,
+                } => {
                     let dat = match value {
                         DataValue::Number(x) => x as u8,
                         DataValue::Boolean(x) => {
@@ -494,18 +495,18 @@ impl MidiManager {
                                 0
                             }
                         }
-                        DataValue::Color(color) => todo!(),
-                        DataValue::Vector3(vec3) => todo!(),
-                        DataValue::Point3(vec3) => todo!(),
+                        DataValue::Color(_color) => todo!(),
+                        DataValue::Vector3(_vec3) => todo!(),
+                        DataValue::Point3(_vec3) => todo!(),
                     };
                     MidiDataMessage::ControlChange {
                         controller,
                         data: Some(dat),
                     }
                 }
-                MidiDataMessage::ProgramChange { program } => todo!(),
-                MidiDataMessage::ChannelAftertouch { pressure } => todo!(),
-                MidiDataMessage::PitchWheel { pitch } => todo!(),
+                MidiDataMessage::ProgramChange { program: _ } => todo!(),
+                MidiDataMessage::ChannelAftertouch { pressure: _ } => todo!(),
+                MidiDataMessage::PitchWheel { pitch: _ } => todo!(),
                 MidiDataMessage::SysEx => todo!(),
             };
 
@@ -639,8 +640,8 @@ mod tests {
         use crate::io::midi::{MidiEvent, MidiManager};
         use std::sync::mpsc;
 
-        let (tx, rx) = mpsc::channel::<MidiEvent>();
-        let manager = MidiManager::new(tx);
+        let (tx, _rx) = mpsc::channel::<MidiEvent>();
+        let _manager = MidiManager::new(tx);
     }
 
     #[test]
@@ -648,11 +649,11 @@ mod tests {
         use crate::io::midi::{MidiEvent, MidiManager};
         use std::sync::mpsc;
 
-        let (tx, rx) = mpsc::channel::<MidiEvent>();
-        let manager = MidiManager::new(tx);
+        let (tx, _rx) = mpsc::channel::<MidiEvent>();
+        let _manager = MidiManager::new(tx);
 
-        let inputs = MidiManager::get_available_input_ports();
-        let outputs = MidiManager::get_available_output_ports();
+        let _inputs = MidiManager::get_available_input_ports();
+        let _outputs = MidiManager::get_available_output_ports();
     }
 
     #[test]
@@ -660,7 +661,7 @@ mod tests {
         use crate::io::midi::{MidiEvent, MidiManager};
         use std::sync::mpsc;
 
-        let (tx, rx) = mpsc::channel::<MidiEvent>();
+        let (tx, _rx) = mpsc::channel::<MidiEvent>();
         let mut manager = MidiManager::new(tx);
 
         assert!(

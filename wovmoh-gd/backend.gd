@@ -3,14 +3,23 @@ extends Node
 signal api_error(message: String)
 
 var client: TcpClient
+var backend_thread: Thread
 
 var _request_id: int = 0
 
+func _start_backend() -> void:
+	OS.execute("./wovmoh-rs.exe", PackedStringArray())
+
 func _ready() -> void:
+	backend_thread = Thread.new()
+	backend_thread.start(_start_backend)
 	client = TcpClient.new()
 	add_child(client)
 	
 	client.connect_to_host("127.0.0.1", 7878)
+
+func _exit_tree() -> void:
+	backend_thread.wait_to_finish()
 
 func is_connected_to_host() -> bool:
 	if !client: return false
