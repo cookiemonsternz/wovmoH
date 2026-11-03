@@ -47,7 +47,7 @@ fn write_error(message: impl Into<String>, request: Request, stream: &mut TcpStr
 pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpStream) {
     let mut app = match app.lock() {
         Ok(app) => app,
-        Err(err) => {
+        Err(_) => {
             write_error("App mutex locket", request, stream);
             return;
         }
@@ -170,8 +170,8 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
         }
         Command::DisconnectNodes {
             graph_id,
-            node_from,
-            pin_from,
+            node_from: _,
+            pin_from: _,
             node_to,
             field_to,
         } => {
@@ -271,15 +271,33 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             );
         }
         Command::ConnectMidiInput { ref id } => {
-            app.midi.connect_input(id.to_string());
+            match app.midi.connect_input(id.to_string()) {
+                Err(err) => {
+                    write_error(err, request, stream);
+                    return;
+                }
+                _ => {}
+            };
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::ConnectMidiOutput { ref id } => {
-            app.midi.connect_output(id.to_string());
+            match app.midi.connect_output(id.to_string()) {
+                Err(err) => {
+                    write_error(err, request, stream);
+                    return;
+                }
+                _ => {}
+            };
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::GetConnectedMidiInputs => {
-            let inputs = app.midi.get_connected_inputs();
+            let inputs = match app.midi.get_connected_inputs() {
+                Ok(inputs) => inputs,
+                Err(err) => {
+                    write_error(err, request, stream);
+                    return;
+                }
+            };
             write(
                 ResponseData::ConnectedMidiInputs { inputs },
                 request,
@@ -287,7 +305,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
             );
         }
         Command::GetConnectedMidiOutputs => {
-            let outputs = app.midi.get_connected_outputs();
+            let outputs = match app.midi.get_connected_outputs() {
+                Ok(outputs) => outputs,
+                Err(err) => {
+                    write_error(err, request, stream);
+                    return;
+                }
+            };
             write(
                 ResponseData::ConnectedMidiOutputs { outputs },
                 request,
@@ -320,7 +344,7 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
 
             let current_subscriptions = match app.midi.input_subscriptions.read() {
                 Ok(subscriptions) => subscriptions,
-                Err(error) => {
+                Err(_) => {
                     write_error("App mutex locked", request, stream);
                     return;
                 }
@@ -447,7 +471,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
         Command::GetMidiInputNameFromId { ref id } => {
             write(
                 ResponseData::MidiInputName {
-                    name: MidiManager::get_input_name_from_id(id.clone()),
+                    name: match MidiManager::get_input_name_from_id(id.clone()) {
+                        Ok(name) => name,
+                        Err(err) => {
+                            write_error(err, request, stream);
+                            return;
+                        }
+                    },
                 },
                 request,
                 stream,
@@ -456,7 +486,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
         Command::GetMidiOutputNameFromId { ref id } => {
             write(
                 ResponseData::MidiOutputName {
-                    name: MidiManager::get_output_name_from_id(id.clone()),
+                    name: match MidiManager::get_output_name_from_id(id.clone()) {
+                        Ok(name) => name,
+                        Err(err) => {
+                            write_error(err, request, stream);
+                            return;
+                        }
+                    },
                 },
                 request,
                 stream,
@@ -480,11 +516,17 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                 }
             };
             let field_id = graph.input_id_for(node_id, field_index);
-            app.artnet.subscribe_input(ArtnetInputFieldSubscription {
+            match app.artnet.subscribe_input(ArtnetInputFieldSubscription {
                 graph_id,
                 field: field_id,
                 channel: channel,
-            });
+            }) {
+                Err(err) => {
+                    write_error(err, request, stream);
+                    return;
+                }
+                _ => {}
+            };
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::UnsubscribeArtnetInputFromField {
@@ -501,11 +543,17 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                 }
             };
             let field_id = graph.input_id_for(node_id, field_index);
-            app.artnet.unsubscribe_input(ArtnetInputFieldSubscription {
+            match app.artnet.unsubscribe_input(ArtnetInputFieldSubscription {
                 graph_id,
                 field: field_id,
                 channel: channel,
-            });
+            }) {
+                Err(err) => {
+                    write_error(err, request, stream);
+                    return;
+                }
+                _ => {}
+            };
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::GetArtnetInputSubscriptions => {
@@ -548,11 +596,17 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                 }
             };
             let pin_id = graph.output_id_for(node_id, pin_index);
-            app.artnet.subscribe_output(ArtnetOutputPinSubscription {
+            match app.artnet.subscribe_output(ArtnetOutputPinSubscription {
                 graph_id,
                 pin: pin_id,
                 channel: channel,
-            });
+            }) {
+                Err(err) => {
+                    write_error(err, request, stream);
+                    return;
+                }
+                _ => {}
+            };
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::UnsubscribeArtnetOutputFromPin {
@@ -569,11 +623,17 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                 }
             };
             let pin_id = graph.output_id_for(node_id, pin_index);
-            app.artnet.unsubscribe_output(ArtnetOutputPinSubscription {
+            match app.artnet.unsubscribe_output(ArtnetOutputPinSubscription {
                 graph_id,
                 pin: pin_id,
                 channel: channel,
-            });
+            }) {
+                Err(err) => {
+                    write_error(err, request, stream);
+                    return;
+                }
+                _ => {}
+            };
             write(ResponseData::Acknowledge, request, stream);
         }
         Command::GetArtnetOutputSubscriptions => {

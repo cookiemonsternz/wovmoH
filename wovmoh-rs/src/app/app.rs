@@ -3,10 +3,7 @@ use std::{
     io::{BufReader, Write},
     path::PathBuf,
     str::FromStr,
-    sync::{
-        Arc, Mutex,
-        mpsc::{self, Receiver},
-    },
+    sync::mpsc::{self, Receiver},
 };
 
 use serde::{Deserialize, Serialize};
@@ -16,15 +13,15 @@ use crate::{
         graph_manager::GraphManager,
         node::{NodeKind, NodeUIState},
     },
-    dto::{connection_dto, graph_dto::GraphDto},
+    dto::graph_dto::GraphDto,
     io::{
         artnet::{
             ArtnetInputFieldSubscription, ArtnetInputFieldSubscriptionDTO, ArtnetManager,
             ArtnetOutputPinSubscription, ArtnetOutputPinSubscriptionDTO, WovmohArtCommand,
         },
         midi::{
-            MidiDataMessage, MidiEvent, MidiInputFieldSubscription, MidiInputFieldSubscriptionDTO,
-            MidiManager, MidiOutputPinSubscription, MidiOutputPinSubscriptionDTO,
+            MidiEvent, MidiInputFieldSubscription, MidiInputFieldSubscriptionDTO, MidiManager,
+            MidiOutputPinSubscription, MidiOutputPinSubscriptionDTO,
         },
     },
 };
@@ -81,8 +78,8 @@ impl App {
             graph.process();
         }
 
-        self.midi.send_output_events(&self.graphs);
-        self.artnet.send_output_events(&self.graphs);
+        let _ = self.midi.send_output_events(&self.graphs);
+        let _ = self.artnet.send_output_events(&self.graphs);
     }
 
     pub fn to_dto(&self) -> AppDTO {
@@ -274,7 +271,7 @@ impl App {
                         artnet_input_subscription.field_index,
                     )?,
                 channel: artnet_input_subscription.channel,
-            });
+            })?;
         }
 
         for artnet_output_subscription in app_dto.artnet_output_subscriptions {
@@ -288,7 +285,7 @@ impl App {
                         artnet_output_subscription.pin_index,
                     )?,
                 channel: artnet_output_subscription.channel,
-            });
+            })?;
         }
 
         Ok(app)

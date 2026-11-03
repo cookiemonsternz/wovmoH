@@ -3,6 +3,7 @@ class_name Main extends Control
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	Backend.api_error.connect(_show_api_error)
+	GodotxToast.default_origin = GodotxToastEnums.ToastOrigin.BOTTOM_RIGHT
 
 func _show_api_error(message: String) -> void:
 	GodotxToast.error(message)

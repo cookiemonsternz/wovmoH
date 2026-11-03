@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use crate::core::output_pin::OutputId;
 use crate::types::data_type::{DataType, DataValue};
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -1,14 +1,14 @@
 use std::{
-    net::{SocketAddr, ToSocketAddrs, UdpSocket},
+    net::{SocketAddr, UdpSocket},
     sync::{
-        Arc, Mutex, RwLock,
+        Arc, RwLock,
         mpsc::{self, Sender},
     },
     thread,
     time::Duration,
 };
 
-use artnet_protocol::{byteorder::BigEndian, *};
+use artnet_protocol::*;
 use serde::{Deserialize, Serialize};
 
 use crate::core::{graph::GraphId, graph_manager::GraphManager, node::NodeId};
@@ -65,7 +65,7 @@ impl ArtnetManager {
         let input_subscriptions_copy = Arc::clone(&input_subscriptions);
         thread::spawn(move || {
             let socket = UdpSocket::bind(("0.0.0.0", 6454)).unwrap();
-            socket.set_broadcast(true);
+            socket.set_broadcast(true).unwrap();
 
             let broadcast_addr: SocketAddr = "255.255.255.255:6454".parse().unwrap();
 
@@ -124,51 +124,88 @@ impl ArtnetManager {
         }
     }
 
-    pub fn subscribe_input(&mut self, subscription: ArtnetInputFieldSubscription) {
-        self.input_subscriptions.write().unwrap().push(subscription);
+    pub fn subscribe_input(
+        &mut self,
+        subscription: ArtnetInputFieldSubscription,
+    ) -> std::result::Result<(), String> {
+        self.input_subscriptions
+            .write()
+            .map_err(|_| "Could not write to input subscriptions (mutex poisoned?)".to_string())?
+            .push(subscription);
+        Ok(())
     }
 
-    pub fn unsubscribe_input(&mut self, subscription: ArtnetInputFieldSubscription) {
-        let index = self
+    pub fn unsubscribe_input(
+        &mut self,
+        subscription: ArtnetInputFieldSubscription,
+    ) -> std::result::Result<(), String> {
+        let index = match self
             .input_subscriptions
             .read()
-            .unwrap()
+            .map_err(|_| "Coult not read input subscriptions (mutex poisoned?)".to_string())?
             .iter()
             .position(|x| *x == subscription)
-            .unwrap();
-        self.input_subscriptions.write().unwrap().swap_remove(index);
+        {
+            Some(pos) => pos,
+            None => return Err(format!("Could not find subscription {:?}", subscription)),
+        };
+
+        self.input_subscriptions
+            .write()
+            .map_err(|_| "Could not write to input subscriptions (mutex poisoned?)".to_string())?
+            .swap_remove(index);
+        Ok(())
     }
 
-    pub fn subscribe_output(&mut self, subscription: ArtnetOutputPinSubscription) {
+    pub fn subscribe_output(
+        &mut self,
+        subscription: ArtnetOutputPinSubscription,
+    ) -> std::result::Result<(), String> {
         self.output_subscriptions
             .write()
-            .unwrap()
+            .map_err(|_| "Could not write to output subscriptions (mutex poisoned?)".to_string())?
             .push(subscription);
+
+        Ok(())
     }
 
-    pub fn unsubscribe_output(&mut self, subscription: ArtnetOutputPinSubscription) {
-        let index = self
+    pub fn unsubscribe_output(
+        &mut self,
+        subscription: ArtnetOutputPinSubscription,
+    ) -> std::result::Result<(), String> {
+        let index = match self
             .output_subscriptions
             .read()
-            .unwrap()
+            .map_err(|_| "Coult not read output subscriptions (mutex poisoned?)".to_string())?
             .iter()
             .position(|x| *x == subscription)
-            .unwrap();
+        {
+            Some(pos) => pos,
+            None => return Err(format!("Could not find subscription {:?}", subscription)),
+        };
+
         self.output_subscriptions
             .write()
-            .unwrap()
+            .map_err(|_| "Could not write to output subscriptions (mutex poisoned?)".to_string())?
             .swap_remove(index);
+
+        Ok(())
     }
 
     pub fn poll(&self) {
         let _ = self.tx.send(ArtCommand::Poll(Poll::default()));
     }
 
-    pub fn send_output_events(&mut self, graphs: &GraphManager) {
+    pub fn send_output_events(&mut self, graphs: &GraphManager) -> std::result::Result<(), String> {
         let mut data: Vec<u8> = Vec::new();
         data.resize(512, 0);
-        for output_subscription in self.output_subscriptions.read().unwrap().iter() {
-            let graph = graphs.get_graph(output_subscription.graph_id);
+        for output_subscription in self
+            .output_subscriptions
+            .read()
+            .map_err(|_| "Could not read output subscriptions (mutex poisoned?)".to_string())?
+            .iter()
+        {
+            let graph = graphs.try_get_graph(output_subscription.graph_id)?;
             let pin = graph.get_output(output_subscription.pin);
             let value = pin.value.clone();
 
@@ -195,6 +232,22 @@ impl ArtnetManager {
 
         self.tx
             .send(ArtCommand::Output(output))
-            .expect("Could not send command to channel");
+            .map_err(|_| "Could not send command to channel".to_string())?;
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::io::artnet::WovmohArtCommand;
+
+    #[test]
+    fn test_artnet_manager_init() {
+        use crate::io::artnet::ArtnetManager;
+        use std::sync::mpsc;
+
+        let (tx, rx) = mpsc::channel::<WovmohArtCommand>();
+        ArtnetManager::new(tx);
     }
 }

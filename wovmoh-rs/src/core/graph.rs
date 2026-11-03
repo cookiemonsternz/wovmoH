@@ -16,7 +16,6 @@ pub struct Graph {
     inputs: Vec<InputField>,
     outputs: Vec<OutputPin>,
 
-    nodes_map: HashMap<NodeId, usize>,
     execution_order: Vec<NodeId>,
 
     order_dirty: bool,
@@ -29,7 +28,6 @@ impl Graph {
             nodes: Vec::new(),
             inputs: Vec::new(),
             outputs: Vec::new(),
-            nodes_map: HashMap::new(),
             execution_order: Vec::new(),
             order_dirty: false,
         }
@@ -93,14 +91,14 @@ impl Graph {
         self.order_dirty = true;
     }
 
-    pub fn remove_node(&mut self, node_id: NodeId) {
+    pub fn remove_node(&mut self, node_id: NodeId) -> Result<(), String> {
         let node = self.nodes[node_id].clone();
 
         // Disconnect all connections
         for input_id in &node.inputs {
             let input = &self.inputs[*input_id];
             if input.connected_output.is_some() {
-                self.disconnect(*input_id);
+                self.disconnect(*input_id)?;
             }
         }
 
@@ -108,7 +106,7 @@ impl Graph {
             let output = &self.outputs[*output_id];
             if output.connections.len() > 0 {
                 for connected_input_id in output.connections.clone() {
-                    self.disconnect(connected_input_id);
+                    self.disconnect(connected_input_id)?;
                 }
             }
         }
@@ -159,7 +157,7 @@ impl Graph {
 
         if self.nodes.is_empty() {
             self.order_dirty = true;
-            return;
+            return Ok(());
         }
 
         if node_id != last_node_id {
@@ -176,24 +174,42 @@ impl Graph {
         }
 
         self.order_dirty = true;
+
+        Ok(())
     }
 
-    pub fn connect(&mut self, from: OutputId, to: InputId) {
-        let input_field = &mut self.inputs[to];
-        input_field.connected_output = Some(from);
+    pub fn connect(&mut self, from: OutputId, to: InputId) -> Result<(), String> {
+        if self.inputs.len() - 1 < to {
+            return Err(format!("Invalid input id: {}", to));
+        }
+        if self.outputs.len() - 1 < from {
+            return Err(format!("Invalid output id: {}", from));
+        }
 
+        let input_field = &mut self.inputs[to];
         let output_pin = &mut self.outputs[from];
+
+        if input_field.value.type_name() != output_pin.value.type_name() {
+            return Err(format!(
+                "Mismatched field/pin types, {} : {}",
+                input_field.value.type_name(),
+                output_pin.value.type_name()
+            ));
+        }
+
+        input_field.connected_output = Some(from);
         output_pin.connections.push(to);
 
         self.order_dirty = true;
+        Ok(())
     }
 
-    pub fn disconnect(&mut self, input_field_id: InputId) {
+    pub fn disconnect(&mut self, input_field_id: InputId) -> Result<(), String> {
         let input_field = &mut self.inputs[input_field_id];
 
         let output_id = match input_field.connected_output {
             Some(id) => id,
-            None => panic!("Cannot disconnect, not connected!"),
+            None => return Err(format!("Input not connected: {}", input_field_id)),
         };
         input_field.connected_output = None;
 
@@ -202,6 +218,8 @@ impl Graph {
             .retain(|&id| id != input_field_id);
 
         self.order_dirty = true;
+
+        Ok(())
     }
 
     pub fn node_for_input(&self, input_field_id: InputId) -> NodeId {
@@ -345,7 +363,7 @@ impl Graph {
             return Err(format!("Input field {to} is already connected"));
         }
 
-        self.connect(from, to);
+        self.connect(from, to)?;
         Ok(())
     }
 
@@ -358,7 +376,7 @@ impl Graph {
             return Err(format!("Input field {input_field_id} is not connected"));
         }
 
-        self.disconnect(input_field_id);
+        self.disconnect(input_field_id)?;
         Ok(())
     }
 
@@ -370,7 +388,7 @@ impl Graph {
             ));
         }
 
-        self.remove_node(node_id);
+        self.remove_node(node_id)?;
         Ok(())
     }
 
@@ -547,17 +565,17 @@ impl Graph {
             MidiDataMessage::NoteOff { note, velocity } => match input.value {
                 DataValue::Number(_) => input.value = DataValue::Number(velocity.unwrap() as f64),
                 DataValue::Boolean(_) => input.value = DataValue::Boolean(false),
-                DataValue::Color(color) => eprintln!(
+                DataValue::Color(_color) => eprintln!(
                     "Cannot set a Color field with a midi input of type NoteOff {{note: {}, velocity: {}}}",
                     note.unwrap(),
                     velocity.unwrap()
                 ),
-                DataValue::Vector3(vec3) => eprintln!(
+                DataValue::Vector3(_vec3) => eprintln!(
                     "Cannot set a Vector3 field with a midi input of type NoteOff {{note: {}, velocity: {}}}",
                     note.unwrap(),
                     velocity.unwrap()
                 ),
-                DataValue::Point3(vec3) => eprintln!(
+                DataValue::Point3(_vec3) => eprintln!(
                     "Cannot set a Point3 field with a midi input of type NoteOff {{note: {}, velocity: {}}}",
                     note.unwrap(),
                     velocity.unwrap()
@@ -566,17 +584,17 @@ impl Graph {
             MidiDataMessage::NoteOn { note, velocity } => match input.value {
                 DataValue::Number(_) => input.value = DataValue::Number(velocity.unwrap() as f64),
                 DataValue::Boolean(_) => input.value = DataValue::Boolean(true),
-                DataValue::Color(color) => eprintln!(
+                DataValue::Color(_color) => eprintln!(
                     "Cannot set a Color field with a midi input of type NoteOn {{note: {}, velocity: {}}}",
                     note.unwrap(),
                     velocity.unwrap()
                 ),
-                DataValue::Vector3(vec3) => eprintln!(
+                DataValue::Vector3(_vec3) => eprintln!(
                     "Cannot set a Vector3 field with a midi input of type NoteOn {{note: {}, velocity: {}}}",
                     note.unwrap(),
                     velocity.unwrap()
                 ),
-                DataValue::Point3(vec3) => eprintln!(
+                DataValue::Point3(_vec3) => eprintln!(
                     "Cannot set a Point3 field with a midi input of type NoteOn {{note: {}, velocity: {}}}",
                     note.unwrap(),
                     velocity.unwrap()
@@ -588,17 +606,17 @@ impl Graph {
                     input.value =
                         DataValue::Boolean(if pressure.unwrap() < 64 { false } else { true })
                 }
-                DataValue::Color(color) => eprintln!(
+                DataValue::Color(_color) => eprintln!(
                     "Cannot set a Color field with a midi input of type PolyphonicAftertouch {{note: {}, pressure: {}}}",
                     note.unwrap(),
                     pressure.unwrap()
                 ),
-                DataValue::Vector3(vec3) => eprintln!(
+                DataValue::Vector3(_vec3) => eprintln!(
                     "Cannot set a Vector3 field with a midi input of type PolyphonicAftertouch {{note: {}, pressure: {}}}",
                     note.unwrap(),
                     pressure.unwrap()
                 ),
-                DataValue::Point3(vec3) => eprintln!(
+                DataValue::Point3(_vec3) => eprintln!(
                     "Cannot set a Point3 field with a midi input of type PolyphonicAftertouch {{note: {}, pressure: {}}}",
                     note.unwrap(),
                     pressure.unwrap()
@@ -609,39 +627,39 @@ impl Graph {
                 DataValue::Boolean(_) => {
                     input.value = DataValue::Boolean(if data.unwrap() < 64 { false } else { true })
                 }
-                DataValue::Color(color) => eprintln!(
+                DataValue::Color(_color) => eprintln!(
                     "Cannot set a Color field with a midi input of type ControlChange {{controller: {}, data: {}}}",
                     controller.unwrap(),
                     data.unwrap()
                 ),
-                DataValue::Vector3(vec3) => eprintln!(
+                DataValue::Vector3(_vec3) => eprintln!(
                     "Cannot set a Vector3 field with a midi input of type ControlChange {{controller: {}, data: {}}}",
                     controller.unwrap(),
                     data.unwrap()
                 ),
-                DataValue::Point3(vec3) => eprintln!(
+                DataValue::Point3(_vec3) => eprintln!(
                     "Cannot set a Point3 field with a midi input of type ControlChange {{controller: {}, data: {}}}",
                     controller.unwrap(),
                     data.unwrap()
                 ),
             },
-            MidiDataMessage::ProgramChange { program } => todo!(),
-            MidiDataMessage::ChannelAftertouch { pressure } => todo!(),
+            MidiDataMessage::ProgramChange { program: _ } => todo!(),
+            MidiDataMessage::ChannelAftertouch { pressure: _ } => todo!(),
             MidiDataMessage::PitchWheel { pitch } => match input.value {
                 DataValue::Number(_) => input.value = DataValue::Number(pitch.unwrap() as f64),
                 DataValue::Boolean(_) => {
                     input.value =
                         DataValue::Boolean(if pitch.unwrap() < 128 { false } else { true })
                 }
-                DataValue::Color(color) => eprintln!(
+                DataValue::Color(_color) => eprintln!(
                     "Cannot set a Color field with a midi input of type ControlChange {{pitch: {}}}",
                     pitch.unwrap(),
                 ),
-                DataValue::Vector3(vec3) => eprintln!(
+                DataValue::Vector3(_vec3) => eprintln!(
                     "Cannot set a Vector3 field with a midi input of type ControlChange {{pitch: {}}}",
                     pitch.unwrap(),
                 ),
-                DataValue::Point3(vec3) => eprintln!(
+                DataValue::Point3(_vec3) => eprintln!(
                     "Cannot set a Point3 field with a midi input of type ControlChange {{pitch: {}}}",
                     pitch.unwrap(),
                 ),
@@ -650,7 +668,10 @@ impl Graph {
         }
 
         match message {
-            MidiDataMessage::ControlChange { controller, data } => {
+            MidiDataMessage::ControlChange {
+                controller: _,
+                data,
+            } => {
                 println!(
                     "updating input: {} with value: {}",
                     field_index,
@@ -669,9 +690,9 @@ impl Graph {
                 input.value = DataValue::Number(value as f64);
             }
             DataValue::Boolean(_) => input.value = DataValue::Boolean(value < 128),
-            DataValue::Color(color) => todo!(),
-            DataValue::Vector3(vec3) => todo!(),
-            DataValue::Point3(vec3) => todo!(),
+            DataValue::Color(_color) => todo!(),
+            DataValue::Vector3(_vec3) => todo!(),
+            DataValue::Point3(_vec3) => todo!(),
         }
     }
 }
@@ -707,7 +728,7 @@ mod tests {
 
         graph.add_node(node_kind, ui_state);
 
-        graph.remove_node(0);
+        graph.remove_node(0).unwrap();
 
         assert!(graph.has_node(0) == false);
     }
@@ -723,9 +744,9 @@ mod tests {
 
         graph.add_node(node_kind, ui_state.clone());
 
-        graph.connect(0, 1);
+        graph.connect(0, 1).unwrap();
 
-        graph.disconnect(1);
+        graph.disconnect(1).unwrap();
     }
 
     #[test]
@@ -738,17 +759,22 @@ mod tests {
         graph.add_node(node_kind, ui_state.clone());
         graph.add_node(node_kind, ui_state.clone());
 
-        graph.connect(0, 1);
+        let from_id = graph.get_node(0).outputs[0];
+        let to_id = graph.get_node(1).inputs[0];
+        graph.connect(from_id, to_id).unwrap();
 
         // for mut output_value in graph.output_values_for(0) {
         //     output_value = &mut DataValue::Number(5.0);
         // }
 
-        graph.inputs[0].value = DataValue::Number(5.0);
+        let input_id = graph.get_node(0).inputs[0];
+        graph.inputs[input_id].value = DataValue::Number(5.0);
 
         // graph.sort_nodes();
 
         graph.process();
+
+        println!("{:?}", graph.outputs[1].value);
 
         assert!(graph.outputs[1].value == DataValue::Number(5.0))
     }

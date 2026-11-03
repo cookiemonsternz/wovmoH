@@ -175,7 +175,7 @@ impl MidiManager {
             .swap_remove(index);
     }
 
-    fn parse_midi_message(message: &[u8]) -> MidiDataMessage {
+    fn parse_midi_message(message: &[u8]) -> Result<MidiDataMessage, ()> {
         // println!("{:b}", message[0] & 0b11110000);
         let midi_message: Result<MidiDataMessage, ()> = match (message[0] & 0b11110000) >> 4 {
             0b1000 => Ok(MidiDataMessage::NoteOff {
@@ -207,15 +207,11 @@ impl MidiManager {
             _ => Err(()),
         };
 
-        // message.unwrap_or_else(|x| {
-        //     println!("Unrecognised midi message {:?}", message);
-        //     panic!();
-        // })
         if midi_message.is_err() {
-            println!("Unrecognised midi message {:?}", message);
-            panic!();
+            eprintln!("Unrecognised midi message {:?}", message);
+            return Err(());
         }
-        midi_message.unwrap()
+        Ok(midi_message.unwrap())
     }
 
     pub fn handle_midi_message(
@@ -354,17 +350,23 @@ impl MidiManager {
             .collect()
     }
 
-    pub fn connect_input(&mut self, port_id: String) {
-        let mut midi_input = MidiInput::new("Test input").expect("Could not create MIDI input");
+    pub fn connect_input(&mut self, port_id: String) -> Result<(), String> {
+        let mut midi_input = match MidiInput::new("Test input") {
+            Ok(input) => input,
+            Err(_) => return Err("Error initializing midi input.".to_string()),
+        };
         midi_input.ignore(Ignore::None);
 
-        let in_port = &midi_input
-            .find_port_by_id(&port_id)
-            .expect("No available port with id");
+        let _port = &midi_input.find_port_by_id(&port_id);
+        let in_port = match _port {
+            Some(port) => port,
+            None => return Err(format!("No midi input port availible with id {}", port_id)),
+        };
 
-        let in_port_name = midi_input
-            .port_name(in_port)
-            .expect("Could not get port name");
+        let in_port_name = match midi_input.port_name(in_port) {
+            Ok(name) => name,
+            Err(_) => return Err(format!("Error getting port name for id {}", port_id)),
+        };
 
         println!("Connecting to: {}", in_port_name);
 
@@ -380,31 +382,46 @@ impl MidiManager {
                     "midir-read-input",
                     move |stamp, message, _| {
                         // println!("{}: {:?} (len = {})", stamp, message, message.len());
-                        let message: MidiDataMessage = MidiManager::parse_midi_message(message);
-                        let events: Vec<MidiEvent> = {
-                            let subscriptions = subscriptions.read().unwrap();
-                            MidiManager::handle_midi_message(&subscriptions, message)
+                        match MidiManager::parse_midi_message(message) {
+                            Ok(message) => {
+                                let events: Vec<MidiEvent> = {
+                                    let subscriptions = subscriptions.read().unwrap();
+                                    MidiManager::handle_midi_message(&subscriptions, message)
+                                };
+                                for event in events {
+                                    tx.send(event);
+                                }
+                            }
+                            Err(_) => return,
                         };
-                        for event in events {
-                            tx.send(event);
-                        }
                     },
                     (),
                 )
-                .expect("Could not connect to port."),
+                .map_err(|_| format!("Could not connect to midi input: {}", in_port_name))?,
         );
+
+        Ok(())
     }
 
-    pub fn connect_output(&mut self, port_id: String) {
-        let mut midi_output = MidiOutput::new("Test output").expect("Could not create MIDI output");
+    pub fn connect_output(&mut self, port_id: String) -> Result<(), String> {
+        let midi_output = MidiOutput::new("Test output")
+            .map_err(|_| "Error initializing midi output".to_string())?;
 
-        let out_port = &midi_output
-            .find_port_by_id(&port_id)
-            .expect("No available port with id");
+        let _port = &midi_output.find_port_by_id(&port_id);
+        let out_port = match _port {
+            Some(port) => port,
+            None => {
+                return Err(format!(
+                    "No midi output port availabile with id {}",
+                    port_id
+                ));
+            }
+        };
 
-        let out_port_name = midi_output
-            .port_name(out_port)
-            .expect("Could not get port name");
+        let out_port_name = match midi_output.port_name(out_port) {
+            Ok(name) => name,
+            Err(_) => return Err(format!("Error getting port name for id {}", port_id)),
+        };
 
         println!("Connecting to: {}", out_port_name);
 
@@ -412,16 +429,18 @@ impl MidiManager {
             out_port.id(),
             midi_output
                 .connect(out_port, "midir-write-output")
-                .expect("Could not connect to port."),
+                .map_err(|_| format!("Error connecting to midi output port with id {}", port_id))?,
         );
+
+        Ok(())
     }
 
-    pub fn send_output_events(&mut self, graphs: &GraphManager) {
+    pub fn send_output_events(&mut self, graphs: &GraphManager) -> Result<(), String> {
         // let mut lock = app.lock();
         // let app = lock.as_mut().unwrap();
 
         for output_subscription in self.output_subscriptions.read().unwrap().iter() {
-            let graph = graphs.get_graph(output_subscription.graph);
+            let graph = graphs.try_get_graph(output_subscription.graph)?;
             let pin = graph.get_output(output_subscription.pin);
             let value = pin.value.clone();
 
@@ -498,77 +517,174 @@ impl MidiManager {
                 .send(&midi_message.to_raw())
                 .expect("Could not send midi message");
         }
+
+        Ok(())
     }
 
-    pub fn disconnect_input(&mut self, port_id: String) {
-        self.input_connections.remove(&port_id).unwrap().close();
+    pub fn disconnect_input(&mut self, port_id: String) -> Result<(), String> {
+        match self.input_connections.remove(&port_id) {
+            Some(connection) => connection.close(),
+            None => return Err(format!("No connection to port id {}", port_id)),
+        };
+        Ok(())
     }
 
-    pub fn get_connected_inputs(&self) -> Vec<PortDescriptor> {
-        let mut midi_input = MidiInput::new("Test input").expect("Could not create MIDI input");
+    pub fn disconnect_output(&mut self, port_id: String) -> Result<(), String> {
+        match self.output_connections.remove(&port_id) {
+            Some(connection) => connection.close(),
+            None => return Err(format!("No connection to port id {}", port_id)),
+        };
+        Ok(())
+    }
+
+    pub fn get_connected_inputs(&self) -> Result<Vec<PortDescriptor>, String> {
+        let mut midi_input = match MidiInput::new("Test input") {
+            Ok(input) => input,
+            Err(_) => return Err("Error initializing midi input.".to_string()),
+        };
         midi_input.ignore(Ignore::None);
 
         let mut connections = Vec::new();
 
         for connection in self.input_connections.iter() {
             connections.push(PortDescriptor {
-                name: midi_input
-                    .port_name(
-                        &midi_input
-                            .find_port_by_id(connection.0)
-                            .expect("Could not find port from id"),
-                    )
-                    .expect("Could not get port name"),
+                name: match midi_input.port_name(match &midi_input.find_port_by_id(connection.0) {
+                    Some(port) => port,
+                    None => {
+                        return Err(format!(
+                            "No midi input port availabile with id {}",
+                            connection.0
+                        ));
+                    }
+                }) {
+                    Ok(name) => name,
+                    Err(_) => {
+                        return Err(format!(
+                            "Could not find port name for port id {}",
+                            connection.0
+                        ));
+                    }
+                },
                 id: connection.0.to_string(),
             });
         }
 
-        connections
+        Ok(connections)
     }
 
-    pub fn get_connected_outputs(&self) -> Vec<PortDescriptor> {
-        let midi_output = MidiOutput::new("Test output").expect("Could not create MIDI output");
+    pub fn get_connected_outputs(&self) -> Result<Vec<PortDescriptor>, String> {
+        let midi_output = MidiOutput::new("Test output")
+            .map_err(|_| "Could not create midi output port".to_string())?;
 
         let mut connections = Vec::new();
 
         for connection in self.output_connections.iter() {
             connections.push(PortDescriptor {
-                name: midi_output
-                    .port_name(
-                        &midi_output
-                            .find_port_by_id(connection.0)
-                            .expect("Could not find port from id"),
-                    )
-                    .expect("Could not get port name"),
+                name: match midi_output.port_name(
+                    match &midi_output.find_port_by_id(connection.0) {
+                        Some(port) => port,
+                        None => {
+                            return Err(format!(
+                                "No midi output port availabile with id {}",
+                                connection.0
+                            ));
+                        }
+                    },
+                ) {
+                    Ok(name) => name,
+                    Err(_) => {
+                        return Err(format!(
+                            "Could not find midi output port name for id {}",
+                            connection.0
+                        ));
+                    }
+                },
                 id: connection.0.to_string(),
             });
         }
 
-        connections
+        Ok(connections)
     }
 
-    pub fn get_input_name_from_id(id: String) -> String {
-        let mut midi_input = MidiInput::new("Test input").expect("Could not create MIDI input");
+    pub fn get_input_name_from_id(id: String) -> Result<String, String> {
+        let mut midi_input =
+            MidiInput::new("Test input").map_err(|_| "Could not create midi input".to_string())?;
         midi_input.ignore(Ignore::None);
 
-        midi_input
-            .port_name(
-                &midi_input
-                    .find_port_by_id(&id)
-                    .expect("Could not find port with id"),
-            )
-            .expect("Could not get name of port")
+        Ok(midi_input
+            .port_name(match &midi_input.find_port_by_id(&id) {
+                Some(port) => port,
+                None => return Err(format!("No midi input port found with id {}", id)),
+            })
+            .map_err(|_| format!("Could not find midi input port name with id {}", id))?)
     }
 
-    pub fn get_output_name_from_id(id: String) -> String {
-        let midi_output = MidiOutput::new("Test output").expect("Could not create MIDI output");
+    pub fn get_output_name_from_id(id: String) -> Result<String, String> {
+        let midi_output = MidiOutput::new("Test output")
+            .map_err(|_| "Could not create MIDI output".to_string())?;
 
-        midi_output
-            .port_name(
-                &midi_output
-                    .find_port_by_id(&id)
-                    .expect("Could not find port with id"),
-            )
-            .expect("Could not get name of port")
+        Ok(midi_output
+            .port_name(match &midi_output.find_port_by_id(&id) {
+                Some(port) => port,
+                None => return Err(format!("No midi output port found with id {}", id)),
+            })
+            .map_err(|_| format!("Could not get name of port with id {}", id))?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_midi_manager_init() {
+        use crate::io::midi::{MidiEvent, MidiManager};
+        use std::sync::mpsc;
+
+        let (tx, rx) = mpsc::channel::<MidiEvent>();
+        let manager = MidiManager::new(tx);
+    }
+
+    #[test]
+    fn test_midi_manager_get_inputs_outputs() {
+        use crate::io::midi::{MidiEvent, MidiManager};
+        use std::sync::mpsc;
+
+        let (tx, rx) = mpsc::channel::<MidiEvent>();
+        let manager = MidiManager::new(tx);
+
+        let inputs = MidiManager::get_available_input_ports();
+        let outputs = MidiManager::get_available_output_ports();
+    }
+
+    #[test]
+    fn test_midi_manager_connect_disconnect_bad_input() {
+        use crate::io::midi::{MidiEvent, MidiManager};
+        use std::sync::mpsc;
+
+        let (tx, rx) = mpsc::channel::<MidiEvent>();
+        let mut manager = MidiManager::new(tx);
+
+        assert!(
+            manager
+                .connect_input("BAD_MIDI_INPUT_ID".to_string())
+                .is_err()
+        );
+
+        assert!(
+            manager
+                .connect_output("BAD_MIDI_OUTPUT_ID".to_string())
+                .is_err()
+        );
+
+        assert!(
+            manager
+                .disconnect_input("BAD_MIDI_INPUT_ID".to_string())
+                .is_err()
+        );
+
+        assert!(
+            manager
+                .disconnect_output("BAD_MIDI_OUTPUT_ID".to_string())
+                .is_err()
+        );
     }
 }

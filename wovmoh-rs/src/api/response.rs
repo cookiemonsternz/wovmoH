@@ -5,10 +5,7 @@ use crate::{
     dto::graph_dto::GraphDto,
     io::{
         artnet::{ArtnetInputFieldSubscriptionDTO, ArtnetOutputPinSubscriptionDTO},
-        midi::{
-            MidiInputFieldSubscription, MidiInputFieldSubscriptionDTO,
-            MidiOutputPinSubscriptionDTO, PortDescriptor,
-        },
+        midi::{MidiInputFieldSubscriptionDTO, MidiOutputPinSubscriptionDTO, PortDescriptor},
     },
 };
 

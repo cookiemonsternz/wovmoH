@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::{
     core::{
-        graph::{Graph, GraphId},
+        graph::GraphId,
         node::{NodeId, NodeKind},
     },
     io::midi::MidiDataMessage,
