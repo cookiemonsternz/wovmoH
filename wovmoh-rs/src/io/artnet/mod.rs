@@ -228,26 +228,31 @@ impl ArtnetManager {
             let pin = graph.get_output(output_subscription.pin);
             let value = pin.value.clone();
 
-            let num = match value {
-                crate::types::data_type::DataValue::Number(x) => x as u8,
+            match value {
+                crate::types::data_type::DataValue::Number(x) => {
+                    data[output_subscription.channel - 1] = x as u8
+                }
                 crate::types::data_type::DataValue::Boolean(x) => {
                     if x {
-                        255 as u8
+                        data[output_subscription.channel - 1] = 255u8;
                     } else {
-                        0 as u8
+                        data[output_subscription.channel - 1] = 0u8;
                     }
                 }
+                crate::types::data_type::DataValue::Color(x) => {
+                    data[output_subscription.channel - 1] = (x.r() * 256.0) as u8;
+                    data[output_subscription.channel - 0] = (x.g() * 256.0) as u8;
+                    data[output_subscription.channel + 1] = (x.b() * 256.0) as u8;
+                }
                 _ => todo!(),
-            } as u8;
-
-            data[output_subscription.channel - 1] = num;
+            };
         }
 
         let output = Output {
             data: PaddedData::from(data),
             ..Default::default()
         };
-        // println!("{:?}", output.data);
+        println!("{:?}", output.data);
 
         self.tx
             .send(ArtCommand::Output(output))

@@ -14,7 +14,6 @@ mod tests {
     use crate::{app::App, transport::tcp};
 
     pub struct Test {
-        app: Arc<Mutex<App>>,
         join_handle: Option<JoinHandle<()>>,
         shutdown_tx: mpsc::Sender<()>,
         stream: TcpStream,
@@ -28,7 +27,6 @@ mod tests {
             let stream = TcpStream::connect(addr).unwrap();
 
             Test {
-                app,
                 join_handle: Some(join_handle),
                 shutdown_tx,
                 stream,

@@ -563,7 +563,9 @@ impl Graph {
         let input = self.inputs.get_mut(field_index).unwrap();
         match message {
             MidiDataMessage::NoteOff { note, velocity } => match input.value {
-                DataValue::Number(_) => input.value = DataValue::Number(velocity.unwrap() as f64),
+                DataValue::Number(_) => {
+                    input.value = DataValue::Number(velocity.unwrap() as f64 / 128.0)
+                }
                 DataValue::Boolean(_) => input.value = DataValue::Boolean(false),
                 DataValue::Color(_color) => eprintln!(
                     "Cannot set a Color field with a midi input of type NoteOff {{note: {}, velocity: {}}}",
@@ -582,7 +584,9 @@ impl Graph {
                 ),
             },
             MidiDataMessage::NoteOn { note, velocity } => match input.value {
-                DataValue::Number(_) => input.value = DataValue::Number(velocity.unwrap() as f64),
+                DataValue::Number(_) => {
+                    input.value = DataValue::Number(velocity.unwrap() as f64 / 128.0)
+                }
                 DataValue::Boolean(_) => input.value = DataValue::Boolean(true),
                 DataValue::Color(_color) => eprintln!(
                     "Cannot set a Color field with a midi input of type NoteOn {{note: {}, velocity: {}}}",
@@ -601,7 +605,9 @@ impl Graph {
                 ),
             },
             MidiDataMessage::PolyphonicAftertouch { note, pressure } => match input.value {
-                DataValue::Number(_) => input.value = DataValue::Number(pressure.unwrap() as f64),
+                DataValue::Number(_) => {
+                    input.value = DataValue::Number(pressure.unwrap() as f64 / 128.0)
+                }
                 DataValue::Boolean(_) => {
                     input.value =
                         DataValue::Boolean(if pressure.unwrap() < 64 { false } else { true })
@@ -623,7 +629,9 @@ impl Graph {
                 ),
             },
             MidiDataMessage::ControlChange { controller, data } => match input.value {
-                DataValue::Number(_) => input.value = DataValue::Number(data.unwrap() as f64),
+                DataValue::Number(_) => {
+                    input.value = DataValue::Number(data.unwrap() as f64 / 128.0)
+                }
                 DataValue::Boolean(_) => {
                     input.value = DataValue::Boolean(if data.unwrap() < 64 { false } else { true })
                 }

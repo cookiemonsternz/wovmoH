@@ -72,6 +72,10 @@ pub enum NodeKind {
     ExpNumbers,
     LogNumbers,
     Branch,
+    SplitColor,
+    MergeColor,
+    SplitColorHSV,
+    MergeColorHSV,
 }
 
 impl NodeKind {
@@ -85,6 +89,10 @@ impl NodeKind {
             NodeKind::ExpNumbers => &nodes::maths::exp::EXP_NUMBERS_DESCRIPTOR,
             NodeKind::LogNumbers => &nodes::maths::log::LOG_NUMBERS_DESCRIPTOR,
             NodeKind::Branch => &nodes::flow::branch::BRANCH_DESCRIPTOR,
+            NodeKind::SplitColor => &nodes::color::split::SPLIT_COLOR_DESCRIPTOR,
+            NodeKind::MergeColor => &nodes::color::merge::MERGE_COLOR_DESCRIPTOR,
+            NodeKind::SplitColorHSV => &nodes::color::split_hsv::SPLIT_HSV_DESCRIPTOR,
+            NodeKind::MergeColorHSV => &nodes::color::merge_hsv::MERGE_HSV_DESCRIPTOR,
         }
     }
 }

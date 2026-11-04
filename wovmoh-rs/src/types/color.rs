@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub enum ColorValue {
     RGB(f64, f64, f64),
     RGBA(f64, f64, f64, f64),
+    HSV(f64, f64, f64),
     HEX([char; 6]),
     HEXA([char; 8]),
 }
@@ -21,6 +22,24 @@ impl Color {
         match v {
             ColorValue::RGB(r, g, b) => Color { e: [r, g, b, 1.0] },
             ColorValue::RGBA(r, g, b, a) => Color { e: [r, g, b, a] },
+            ColorValue::HSV(h, s, v) => {
+                let h = h.rem_euclid(1.0) * 6.0;
+                let i = h.floor();
+                let f = h - i;
+                let p = v * (1.0 - s);
+                let q = v * (1.0 - s * f);
+                let t = v * (1.0 - s * (1.0 - f));
+
+                let (r, g, b) = match i as u8 {
+                    0 => (v, t, p),
+                    1 => (q, v, p),
+                    2 => (p, v, t),
+                    3 => (p, q, v),
+                    4 => (t, p, v),
+                    _ => (v, p, q),
+                };
+                Color { e: [r, g, b, 1.0] }
+            }
             ColorValue::HEX(hex) => {
                 let (r, g, b, a) = hex_to_rgba(hex);
                 Color { e: [r, g, b, a] }
@@ -60,6 +79,25 @@ impl Color {
 
     pub fn rgba(&self) -> (f64, f64, f64, f64) {
         (self.r(), self.g(), self.b(), self.a())
+    }
+
+    pub fn hsv(&self) -> (f64, f64, f64) {
+        let max = self.r().max(self.g()).max(self.b());
+        let min = self.r().min(self.g()).min(self.b());
+        let delta = max - min;
+
+        let hue = if delta == 0.0 {
+            0.0
+        } else if max == self.r() {
+            ((self.g() - self.b()) / delta).rem_euclid(6.0) / 6.0
+        } else if max == self.g() {
+            ((self.b() - self.r()) / delta + 2.0) / 6.0
+        } else {
+            ((self.r() - self.g()) / delta + 4.0) / 6.0
+        };
+        let saturation = if max == 0.0 { 0.0 } else { delta / max };
+
+        (hue, saturation, max)
     }
 
     pub fn hex(&self) -> String {
