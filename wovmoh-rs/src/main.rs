@@ -13,7 +13,7 @@ pub mod types;
 
 fn main() {
     let app = Arc::new(Mutex::new(App::new()));
-    tcp::run(app.clone());
+    tcp::run(app.clone(), "127.0.0.1:7878".parse().unwrap());
 
     let timer = timer::Timer::new();
     let _guard = timer.schedule_repeating(chrono::Duration::milliseconds(16), move || {
@@ -43,7 +43,7 @@ mod tests {
     #[test]
     fn main() {
         let app = Arc::new(Mutex::new(App::new()));
-        tcp::run(app.clone());
+        let (join_handle, shutdown_tx, _) = tcp::run(app.clone(), "127.0.0.1:0".parse().unwrap());
 
         let count = Arc::new(RwLock::new(0));
 
@@ -65,8 +65,12 @@ mod tests {
 
         loop {
             if count.read().unwrap().gt(&10i32) {
+                let _ = shutdown_tx.send(());
+                join_handle.join().unwrap();
                 return;
             }
+
+            std::thread::sleep(std::time::Duration::from_millis(1));
         }
     }
 }

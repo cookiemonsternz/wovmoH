@@ -331,7 +331,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                     return;
                 }
             };
-            let field_id = graph.input_id_for(node_id, field_index);
+            let field_id = match graph.try_input_id_for(node_id, field_index) {
+                Ok(node) => node,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             app.midi.subscribe_input(MidiInputFieldSubscription {
                 graph: graph_id,
                 field: field_id,
@@ -387,7 +393,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                     return;
                 }
             };
-            let field_id = graph.input_id_for(node_id, field_index);
+            let field_id = match graph.try_input_id_for(node_id, field_index) {
+                Ok(node) => node,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             app.midi.unsubscribe_input(MidiInputFieldSubscription {
                 graph: graph_id,
                 field: field_id,
@@ -409,7 +421,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                     return;
                 }
             };
-            let pin_id = graph.output_id_for(node_id, pin_index);
+            let pin_id = match graph.try_output_id_for(node_id, pin_index) {
+                Ok(pin) => pin,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             app.midi.subscribe_output(MidiOutputPinSubscription {
                 midi_output: midi_output.clone(),
                 graph: graph_id,
@@ -459,7 +477,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                     return;
                 }
             };
-            let pin_id = graph.output_id_for(node_id, pin_index);
+            let pin_id = match graph.try_output_id_for(node_id, pin_index) {
+                Ok(pin) => pin,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             app.midi.unsubscribe_output(MidiOutputPinSubscription {
                 midi_output: midi_output.clone(),
                 graph: graph_id,
@@ -515,7 +539,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                     return;
                 }
             };
-            let field_id = graph.input_id_for(node_id, field_index);
+            let field_id = match graph.try_input_id_for(node_id, field_index) {
+                Ok(field) => field,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             match app.artnet.subscribe_input(ArtnetInputFieldSubscription {
                 graph_id,
                 field: field_id,
@@ -542,7 +572,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                     return;
                 }
             };
-            let field_id = graph.input_id_for(node_id, field_index);
+            let field_id = match graph.try_input_id_for(node_id, field_index) {
+                Ok(field) => field,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             match app.artnet.unsubscribe_input(ArtnetInputFieldSubscription {
                 graph_id,
                 field: field_id,
@@ -595,7 +631,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                     return;
                 }
             };
-            let pin_id = graph.output_id_for(node_id, pin_index);
+            let pin_id = match graph.try_output_id_for(node_id, pin_index) {
+                Ok(pin) => pin,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             match app.artnet.subscribe_output(ArtnetOutputPinSubscription {
                 graph_id,
                 pin: pin_id,
@@ -622,7 +664,13 @@ pub fn handle_request(app: Arc<Mutex<App>>, request: Request, stream: &mut TcpSt
                     return;
                 }
             };
-            let pin_id = graph.output_id_for(node_id, pin_index);
+            let pin_id = match graph.try_output_id_for(node_id, pin_index) {
+                Ok(pin) => pin,
+                Err(error) => {
+                    write_error(error, request, stream);
+                    return;
+                }
+            };
             match app.artnet.unsubscribe_output(ArtnetOutputPinSubscription {
                 graph_id,
                 pin: pin_id,

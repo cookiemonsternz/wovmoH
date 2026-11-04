@@ -4,7 +4,7 @@ use std::{
         Arc, RwLock,
         mpsc::{self, Sender},
     },
-    thread,
+    thread::{self, JoinHandle},
     time::Duration,
 };
 
@@ -53,17 +53,23 @@ pub struct ArtnetManager {
     tx: Sender<ArtCommand>,
     pub input_subscriptions: Arc<RwLock<Vec<ArtnetInputFieldSubscription>>>,
     pub output_subscriptions: Arc<RwLock<Vec<ArtnetOutputPinSubscription>>>,
+    shutdown_tx: Option<Sender<()>>,
+    worker: Option<JoinHandle<()>>,
 }
 
 impl ArtnetManager {
     pub fn new(graph_tx: Sender<WovmohArtCommand>) -> ArtnetManager {
         let (tx, rx) = mpsc::channel::<ArtCommand>();
+        let (shutdown_tx, shutdown_rx) = mpsc::channel::<()>();
 
         let input_subscriptions: Arc<RwLock<Vec<ArtnetInputFieldSubscription>>> =
             Arc::new(RwLock::new(Vec::new()));
 
         let input_subscriptions_copy = Arc::clone(&input_subscriptions);
-        thread::spawn(move || {
+        let worker = thread::spawn(move || {
+            #[cfg(test)]
+            let socket = UdpSocket::bind(("0.0.0.0", 0)).unwrap();
+            #[cfg(not(test))]
             let socket = UdpSocket::bind(("0.0.0.0", 6454)).unwrap();
             socket.set_broadcast(true).unwrap();
 
@@ -76,10 +82,21 @@ impl ArtnetManager {
             let mut buffer = [0u8; 1024];
 
             loop {
+                if shutdown_rx.try_recv().is_ok() {
+                    return;
+                }
+
                 // Send mpsc recieved commands to socket
-                while let Ok(command) = rx.try_recv() {
-                    let buff = command.write_to_buffer().unwrap();
-                    socket.send_to(&buff, &broadcast_addr).unwrap();
+                match rx.try_recv() {
+                    Ok(command) => {
+                        let buff = command.write_to_buffer().unwrap();
+                        socket.send_to(&buff, &broadcast_addr).unwrap();
+                    }
+                    Err(mpsc::TryRecvError::Empty) => {}
+                    Err(mpsc::TryRecvError::Disconnected) => {
+                        println!("ArtnetManage Sender dropped, shutting down");
+                        return;
+                    }
                 }
 
                 // Process socket recieved commands
@@ -121,6 +138,8 @@ impl ArtnetManager {
             tx,
             input_subscriptions,
             output_subscriptions: Arc::new(RwLock::new(Vec::new())),
+            shutdown_tx: Some(shutdown_tx),
+            worker: Some(worker),
         }
     }
 
@@ -235,6 +254,15 @@ impl ArtnetManager {
             .map_err(|_| "Could not send command to channel".to_string())?;
 
         Ok(())
+    }
+}
+
+impl Drop for ArtnetManager {
+    fn drop(&mut self) {
+        let _ = self.shutdown_tx.take().map(|tx| tx.send(()));
+        if let Some(worker) = self.worker.take() {
+            worker.join().unwrap();
+        }
     }
 }
 

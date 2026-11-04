@@ -1,12 +1,20 @@
 use std::{
-    io::{BufRead, BufReader},
-    net::{TcpListener, TcpStream},
-    sync::{Arc, Mutex, mpsc},
-    thread,
+    io::{BufRead, BufReader, Write},
+    net::{SocketAddr, TcpListener, TcpStream},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
+        mpsc,
+    },
+    thread::{self, JoinHandle},
 };
 
 use crate::{
-    api::{self, request::Request},
+    api::{
+        self,
+        request::Request,
+        response::{Response, ResponseData},
+    },
     app::app::App,
 };
 
@@ -75,6 +83,8 @@ impl ThreadPool {
 
 impl Drop for ThreadPool {
     fn drop(&mut self) {
+        drop(self.sender.take());
+
         for worker in &mut self.workers {
             println!("Shutting down worker: {}", worker.id);
 
@@ -85,23 +95,52 @@ impl Drop for ThreadPool {
     }
 }
 
-pub fn run(app: Arc<Mutex<App>>) {
-    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+pub fn run(
+    app: Arc<Mutex<App>>,
+    bind_addr: SocketAddr,
+) -> (JoinHandle<()>, mpsc::Sender<()>, SocketAddr) {
+    let listener = TcpListener::bind(bind_addr).unwrap();
+    let local_addr = listener.local_addr().unwrap();
+    listener.set_nonblocking(true).unwrap();
+
     let pool = ThreadPool::new(4);
+    let (shutdown_tx, shutdown_rx) = mpsc::channel();
+    let shutting_down = Arc::new(AtomicBool::new(false));
 
-    thread::spawn(move || {
-        for stream in listener.incoming() {
-            let stream = stream.unwrap();
-            let app = Arc::clone(&app);
+    let join_handle = thread::spawn(move || {
+        loop {
+            if shutdown_rx.try_recv().is_ok() {
+                shutting_down.store(true, Ordering::Release);
+                break;
+            }
 
-            pool.execute(move || handle_client(app, stream));
+            match listener.accept() {
+                Ok((stream, _)) => {
+                    let app = Arc::clone(&app);
+                    let shutting_down = Arc::clone(&shutting_down);
+                    pool.execute(move || handle_client(app, stream, shutting_down));
+                }
+                Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                    thread::sleep(std::time::Duration::from_millis(10));
+                }
+                Err(e) => {
+                    eprintln!("TCP error {e}");
+                    shutting_down.store(true, Ordering::Release);
+                    break;
+                }
+            }
         }
     });
+
+    (join_handle, shutdown_tx, local_addr)
 }
 
-fn handle_client(app: Arc<Mutex<App>>, stream: TcpStream) {
+fn handle_client(app: Arc<Mutex<App>>, stream: TcpStream, shutting_down: Arc<AtomicBool>) {
     let addr = stream.peer_addr().unwrap();
     println!("Client connected: {}", addr);
+    stream
+        .set_read_timeout(Some(std::time::Duration::from_millis(100)))
+        .unwrap();
 
     let mut reader = BufReader::new(stream);
     let mut line = String::new();
@@ -122,11 +161,41 @@ fn handle_client(app: Arc<Mutex<App>>, stream: TcpStream) {
                 }
                 Err(e) => {
                     eprintln!("[{}] Error deserializing request: {:?}", addr, e);
-                    eprintln!("{}", &line.replace("<null>", "null"))
+                    eprintln!("{}", &line.replace("<null>", "null"));
+
+                    let value: serde_json::Value =
+                        serde_json::from_str(&line.replace("<null>", "null"))
+                            .unwrap_or(serde_json::Value::Null);
+
+                    let value = value.get("id").cloned().unwrap_or(serde_json::Value::Null);
+                    let id: u64 = match value.is_number() {
+                        true => value.as_i64().unwrap() as u64,
+                        false => u64::MAX,
+                    };
+
+                    let response = Response {
+                        id: id,
+                        data: Ok(ResponseData::Error {
+                            message: e.to_string(),
+                        }),
+                    };
+
+                    let mut json = serde_json::to_string(&response).unwrap();
+                    json.push('\n');
+
+                    reader.get_mut().write(json.as_bytes()).unwrap();
                 }
             }, // Match serde::from_str
 
             Err(e) => {
+                if e.kind() == std::io::ErrorKind::WouldBlock
+                    || e.kind() == std::io::ErrorKind::TimedOut
+                {
+                    if shutting_down.load(Ordering::Acquire) {
+                        break;
+                    }
+                    continue;
+                }
                 eprintln!("[{}] Read error: {:?}", addr, e);
                 break;
             }
